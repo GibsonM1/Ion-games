@@ -11,7 +11,7 @@
 :root{
   --paper:#E4F6EE; --grid:#CBEBDD; --ink:#17323A; --soft:#4F6C72;
   --surface:#FFFFFF; --line:#B9DCCD;
-  --cat:#E85A4F; --cat-deep:#A9362D; --an:#2BB3CF; --an-deep:#167A90;
+  --cat:#E85A4F; --cat-deep:#A9362D; --an:#2BB3CF; --an-deep:#167A90; --tile:#6F8389; --tile-deep:#475A60;
   --gold:#F2B630; --good:#2E9E5B; --bad:#C8402F;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
@@ -55,7 +55,7 @@ header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
 .screen{display:none}.screen.on{display:block}
 
 /* home */
-.games{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
 @media (max-width:620px){.games{grid-template-columns:1fr}}
 .game{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:10px}
 .game h2{font-family:"Baloo 2",sans-serif;font-size:26px;margin:0;line-height:1.1}
@@ -94,6 +94,51 @@ h3{font-family:"Baloo 2",sans-serif;font-size:21px;margin:26px 0 8px}
 .stat small{font-weight:400;color:var(--soft);margin-right:4px}
 .timer{flex:1;min-width:120px;height:12px;border-radius:999px;background:var(--surface);border:2px solid var(--line);overflow:hidden}
 .timer i{display:block;height:100%;width:0;background:var(--gold)}
+.timer i.bank{background:var(--good)}
+/* charge command */
+.sky{position:relative;height:clamp(340px,54vh,500px);background:linear-gradient(var(--surface),color-mix(in srgb,var(--an) 12%,var(--surface)));border:3px solid var(--line);border-radius:20px;overflow:hidden;touch-action:manipulation}
+.trails{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.trail{stroke:var(--soft);stroke-width:2;stroke-dasharray:4 5;opacity:.55}
+.msl{position:absolute;transform:translate(-50%,-100%);background:var(--paper);border:3px solid var(--ink);border-radius:14px 14px 20px 20px;padding:3px 12px 4px;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:24px;line-height:1.1;white-space:nowrap;color:var(--ink);z-index:2;text-align:center;transition:opacity .2s}
+.msl .m{color:var(--cat)} .msl .x{color:var(--an-deep)}
+.msl sub{font-size:.62em} .msl sup,.burst sup,#cMsg sup{font-size:.6em}
+.msl.armored{border:6px double var(--soft)}
+.msl.sel{outline:3px solid var(--gold);outline-offset:3px;z-index:3;box-shadow:0 0 0 7px color-mix(in srgb,var(--gold) 25%,transparent)}
+.msl.hit{animation:mshake .3s;border-color:var(--bad)}
+@keyframes mshake{25%{transform:translate(calc(-50% - 7px),-100%)}75%{transform:translate(calc(-50% + 7px),-100%)}}
+.msl.dim{opacity:.6;cursor:default}
+.msl.skipping{opacity:.45;border-style:dashed}
+.shot{position:absolute;transform:translate(-50%,-50%);font-family:"Baloo 2",sans-serif;font-weight:800;font-size:18px;line-height:1;color:#fff;background:var(--cat);border-radius:999px;padding:4px 10px;z-index:5;pointer-events:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--cat) 30%,transparent),0 0 16px var(--cat)}
+.shot.neg{background:var(--an-deep);box-shadow:0 0 0 4px color-mix(in srgb,var(--an) 30%,transparent),0 0 16px var(--an)}
+.shot sub{font-size:.62em}.shot sup{font-size:.6em}
+.shot.miss{animation:ricochet .5s ease-out forwards}
+@keyframes ricochet{to{transform:translate(calc(-50% + 40px),calc(-50% + 30px)) rotate(200deg);opacity:0}}
+.boom{position:absolute;bottom:14px;width:30px;height:30px;margin-left:-15px;border-radius:50%;background:radial-gradient(circle,#FFD36B 0,#F2B630 35%,#E85A4F 65%,transparent 70%);z-index:4;pointer-events:none;animation:boom .7s ease-out forwards}
+@keyframes boom{to{transform:scale(4);opacity:0}}
+.lab.breaking{animation:labshake .45s}
+.lab.draining .lvl{animation:drain .5s}
+@keyframes drain{0%{opacity:1;fill:var(--bad)}100%{opacity:.85}}
+.tname{text-align:center;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:clamp(22px,4vw,30px);line-height:1.2;margin:2px 0 6px;min-height:1.2em}
+.tname .m{color:var(--cat)} .tname .x{color:var(--an-deep)}
+.tname .solved{opacity:.55} .tname .ok{color:var(--good);font-size:.7em;margin-left:4px}
+#musicBtn{font-size:22px;font-weight:700}
+#musicBtn.off{opacity:.45;text-decoration:line-through}
+@keyframes labshake{20%{transform:translateX(-5px) rotate(-6deg)}40%{transform:translateX(5px) rotate(5deg)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+.launch .skip{font-weight:700;padding:6px 14px;border-radius:14px;border:2px solid var(--ink);background:transparent;display:flex;align-items:center;gap:8px}
+.launch .skip kbd{font-family:inherit;font-size:12px;border:1.5px solid var(--line);border-radius:5px;padding:0 4px}
+.launch .skip:disabled{opacity:.35}
+.msl .help{display:block;font-family:"Atkinson Hyperlegible",sans-serif;font-weight:700;font-size:13px;color:var(--soft);line-height:1.2}
+.labs{position:absolute;left:0;right:0;bottom:4px;height:54px;display:grid;grid-template-columns:repeat(4,1fr);align-items:end;justify-items:center;pointer-events:none}
+.lab .liq{fill:var(--good);opacity:.8}
+.lab.down{opacity:.4}.lab.down .liq{fill:var(--bad)}
+.burst{position:absolute;transform:translate(-50%,-100%);font-family:"Baloo 2",sans-serif;font-weight:800;font-size:20px;color:var(--good);pointer-events:none;animation:rise .9s ease-out forwards;z-index:4;white-space:nowrap}
+.burst .m{color:var(--cat)} .burst .x{color:var(--an-deep)} #cMsg .m{color:var(--cat)} #cMsg .x{color:var(--an-deep)}
+@keyframes rise{to{transform:translate(-50%,-190%);opacity:0}}
+.launch{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.launch .fire{min-width:76px;font-family:"Baloo 2",sans-serif;font-size:26px;font-weight:800;padding:6px 14px;border-radius:14px;border:none;background:var(--cat);color:#fff;display:flex;align-items:center;gap:8px;justify-content:center}
+.launch.neg .fire{background:var(--an-deep)}
+.launch .fire:disabled{opacity:.35}
+.launch .fire kbd{font-family:"Atkinson Hyperlegible",sans-serif;font-size:12px;border:1.5px solid rgba(255,255,255,.6);border-radius:5px;padding:0 4px;opacity:.85}
 .msg{min-height:30px;text-align:center;font-weight:700;margin:8px 0}
 .msg.good{color:var(--good)} .msg.bad{color:var(--bad)}
 
@@ -109,6 +154,14 @@ h3{font-family:"Baloo 2",sans-serif;font-size:21px;margin:26px 0 8px}
 .meter .n.p{color:var(--cat)} .meter .n.q{color:var(--an-deep)}
 .meter .eq{font-weight:700;font-size:15px;color:var(--soft)}
 .meter .eq.ok{color:var(--good)}
+#zoneSvg{max-width:100%;height:auto;display:block}
+@media (max-width:560px){
+  .bench{flex-wrap:nowrap;gap:6px;align-items:flex-start}
+  .meter{min-width:0;width:50px;padding-top:24px}
+  .meter .n{font-size:22px}
+  .meter .eq{font-size:11px}
+  .zone{min-width:0;flex:0 1 auto;padding:8px 10px}
+}
 .formula{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:30px;text-align:center;min-height:44px}
 .tray{margin-top:10px;background:color-mix(in srgb,var(--surface) 70%,transparent);border:2px solid var(--line);border-radius:20px;padding:12px;min-height:150px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;justify-content:center}
 .piece{background:none;border:none;padding:2px;border-radius:10px;touch-action:none;line-height:0}
@@ -234,7 +287,9 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 .intro .ic{background:var(--surface);border:3px solid var(--ink);border-radius:24px;padding:22px 24px 20px;max-width:380px;width:100%;text-align:center;box-shadow:0 18px 44px rgba(0,0,0,.2);animation:pop .4s cubic-bezier(.2,1.4,.4,1)}
 @keyframes pop{from{transform:scale(.8);opacity:0}}
 .intro .lv{font-weight:700;color:var(--soft)}
-.intro .pc{display:flex;justify-content:center;margin:14px 0 6px}
+.intro .pc{display:flex;justify-content:center;align-items:flex-start;gap:16px;flex-wrap:wrap;margin:14px 0 6px}
+.intro .or{font-size:.4em;color:var(--soft);margin:0 10px;vertical-align:middle;font-weight:700}
+.fb .tip{display:block;font-weight:400;font-size:15px;color:var(--soft);margin-top:4px}
 .intro .f{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:56px;line-height:1;color:var(--an-deep)}
 .intro .f sub{font-size:.55em}.intro .f sup{font-size:.5em}
 .intro .nmrow{display:flex;justify-content:center;align-items:center;margin-top:8px}
@@ -252,6 +307,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
     <div class="spacer"></div>
     <button class="who" id="whoBtn" hidden></button>
     <div class="coins" title="Points"><span class="coin">⚛</span><span id="coinCount">0</span></div>
+    <button class="iconbtn" id="musicBtn" aria-label="Music in Charge Command" title="Music">♪</button>
     <button class="iconbtn" id="muteBtn" aria-label="Sound on or off">🔊</button>
   </header>
 
@@ -286,13 +342,25 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
             <button class="btn alt" data-start="drop-say-practice">Practice</button><button class="btn" data-start="drop-say-timed">Timed</button></div>
         </div>
       </div>
+      <div class="game">
+        <div class="art" aria-hidden="true">
+          <svg width="200" height="104" viewBox="0 0 200 104"><path d="M30 0 L92 52" stroke="var(--soft)" stroke-width="2" stroke-dasharray="4 5" opacity=".6"/><path d="M180 0 L132 40" stroke="var(--soft)" stroke-width="2" stroke-dasharray="4 5" opacity=".6"/>
+          <rect x="70" y="40" width="54" height="30" rx="10" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/><text x="97" y="61" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="19"><tspan fill="var(--cat)">K</tspan><tspan fill="var(--cat)" font-size="12" dy="4">2</tspan><tspan fill="var(--an-deep)" dy="-4">S</tspan></text></svg>
+        </div>
+        <h2>Charge Command</h2>
+        <p>Read the formula. Fire the right charges before it lands.</p>
+        <div>
+          <div class="mode"><div class="lbl">Defend the labs<small id="best-cmd-play"></small></div>
+            <button class="btn alt" data-start="cmd-play-practice">Practice</button><button class="btn" data-start="cmd-play-timed">Battle</button></div>
+        </div>
+      </div>
     </div>
     <div class="settings">
       <span style="font-weight:700">Ions</span>
       <div class="seg" role="group" aria-label="Ion set">
         <button data-ions="mono">Single-atom only</button><button data-ions="poly">Include polyatomic</button>
       </div>
-      <span class="note" style="margin:0">New polyatomic ions join as you level up.</span>
+      <span class="note" style="margin:0">New ions join as you level up. Single-atom only earns ¾ points.</span>
     </div>
     <div class="settings">
       <span style="font-weight:700">Time</span>
@@ -305,7 +373,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
     <h3>Mastery</h3>
     <div class="panel">
       <div class="mastery" id="masteryGrid"></div>
-      <p class="note">5 correct in a box earns a star. M = positive ion, X = negative ion. Once a box has a star, those compounds lose their puzzle shapes in Bond, so you balance the charges yourself.</p>
+      <p class="note">5 correct in a box earns a star. M = positive ion, X = negative ion. In Bond, the puzzle help fades as you level up: no notches at level 8, no colors at level 11, and same-size pieces at level 14.</p>
     </div>
 
     <section id="boards" hidden>
@@ -318,6 +386,21 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 
     <h3>Atom buddies</h3>
     <div class="panel"><div class="shelf" id="shelf"></div><p class="note" id="shelfNote">Tap a buddy to make it your sprite.</p></div>
+  </section>
+
+  <!-- CHARGE COMMAND -->
+  <section class="screen" id="cmd">
+    <div class="hud">
+      <button class="iconbtn" data-home aria-label="Home">⌂</button>
+      <div class="stat"><small>Score</small><span id="cScore">0</span></div>
+      <div class="stat"><small>Level</small><span id="cLevel">1</span></div>
+      <div class="stat" id="cLabsWrap"><small>Labs</small><span id="cLabs"></span></div>
+      <div class="stat xt" data-xt hidden>Extra time</div>
+    </div>
+    <div class="tname" id="cName" aria-live="polite"></div>
+    <div class="sky" id="sky"></div>
+    <div class="msg" id="cMsg" aria-live="polite"></div>
+    <div class="launch" id="launch"></div>
   </section>
 
   <!-- BUILD -->
@@ -396,8 +479,19 @@ const CATIONS = [
   {s:'Li',n:'lithium',c:1},{s:'Na',n:'sodium',c:1},{s:'K',n:'potassium',c:1},
   {s:'NH4',n:'ammonium',c:1,poly:true},
   {s:'Mg',n:'magnesium',c:2},{s:'Ca',n:'calcium',c:2},{s:'Sr',n:'strontium',c:2},{s:'Ba',n:'barium',c:2},
-  {s:'Al',n:'aluminum',c:3,alt:['aluminium']},{s:'Ga',n:'gallium',c:3}
+  {s:'Al',n:'aluminum',c:3,alt:['aluminium']},{s:'Ga',n:'gallium',c:3},
+  {s:'Zn',n:'zinc',c:2},{s:'Ag',n:'silver',c:1}, // one common charge, so no Roman numeral and no intro
+  // metals with more than one common ion: unlocked by metal, one intro card per metal
+  {s:'Cr',n:'chromium(III)',c:3,tm:'Cr'},{s:'Mn',n:'manganese(II)',c:2,tm:'Mn'},
+  {s:'Fe',n:'iron(II)',c:2,tm:'Fe'},{s:'Fe',n:'iron(III)',c:3,tm:'Fe'},
+  {s:'Co',n:'cobalt(II)',c:2,tm:'Co'},{s:'Co',n:'cobalt(III)',c:3,tm:'Co'},
+  {s:'Ni',n:'nickel(II)',c:2,tm:'Ni'},
+  {s:'Cu',n:'copper(I)',c:1,tm:'Cu'},{s:'Cu',n:'copper(II)',c:2,tm:'Cu'},
+  {s:'Sn',n:'tin(II)',c:2,tm:'Sn'},{s:'Sn',n:'tin(IV)',c:4,tm:'Sn'},
+  {s:'Pb',n:'lead(II)',c:2,tm:'Pb'},{s:'Pb',n:'lead(IV)',c:4,tm:'Pb'}
 ];
+const METAL={Cr:'chromium',Mn:'manganese',Fe:'iron',Co:'cobalt',Ni:'nickel',Cu:'copper',Sn:'tin',Pb:'lead'};
+const ROM=['','I','II','III','IV'];
 const ANIONS = [
   {s:'F',n:'fluorine',ide:'fluoride',c:-1},{s:'Cl',n:'chlorine',ide:'chloride',c:-1},
   {s:'Br',n:'bromine',ide:'bromide',c:-1},{s:'I',n:'iodine',ide:'iodide',c:-1},
@@ -416,7 +510,21 @@ const ANIONS = [
 const BASIC_POLY=['NH4','OH','CO3','SO4','NO3','PO4'];
 const ADV_POLY=['HCO3','C2H3O2','ClO3','CN','CrO4','SCN','SO3','NO2'];
 const ADV_START=4;
-const polyAt=s=>BASIC_POLY.includes(s)?1:ADV_POLY.includes(s)?ADV_START+ADV_POLY.indexOf(s):99;
+const TM_GROUPS=Object.keys(METAL);
+// every ion gets a unique key (Fe2 and Fe3 share a symbol)
+[...CATIONS,...ANIONS].forEach(i=>{i.k=i.tm?i.s+i.c:i.s});
+// From level 4, one new thing per level, alternating metals and polyatomics in a random order each game,
+// so students meet a different mix every time they play.
+function makeSeq(sub){
+  const polys=save.ions==='poly'?shuffle(ADV_POLY.filter(x=>!(sub==='say'&&x==='NO2'))):[];
+  const tms=shuffle(TM_GROUPS.map(m=>'tm:'+m));
+  const seq=[];let metalTurn=Math.random()<.5;
+  while(polys.length||tms.length){
+    const from=(metalTurn&&tms.length)||!polys.length?tms:polys;
+    seq.push(from.shift());metalTurn=!metalTurn;
+  }
+  return seq;
+}
 // red herrings: look-alike names students mix up
 const NAME_TRAPS = {
   N:['nitrate','nitrite'], P:['phosphate','phosphite'], S:['sulfate','sulfite'], O:['hydroxide'], Cl:['chlorate'],
@@ -486,10 +594,11 @@ function tally(mode,ok,name){
 // ion pools grow by level: level 1 = charges up to 2, level 2 adds 3, polyatomics join as above
 function pools(level){
   const mc=level>=2?3:2,poly=save.ions==='poly';
-  const skip=game&&game.sub==='say'?['NO2']:[]; // nitrite stays out of Say my name
-  const ok=i=>!i.poly||(poly&&level>=polyAt(i.s)&&!skip.includes(i.s));
-  return {cats:CATIONS.filter(i=>i.c<=mc&&ok(i)),ans:ANIONS.filter(i=>-i.c<=mc&&ok(i))};
+  const open=new Set(game&&game.seq?game.seq.slice(0,Math.max(0,level-ADV_START+1)):[]);
+  const ok=i=>i.tm?open.has('tm:'+i.tm):!i.poly||(poly&&(BASIC_POLY.includes(i.s)||open.has(i.s)));
+  return {cats:CATIONS.filter(i=>(i.tm||i.c<=mc)&&ok(i)),ans:ANIONS.filter(i=>-i.c<=mc&&ok(i))};
 }
+const boxCap=()=>game&&pools(game.level).cats.some(i=>i.c===4)?12:6; // the build box grows for 4+ ions
 const lvl=()=>game?game.level:1;
 // a trap that names a real ion is only used once that ion has been introduced
 const trapName=t=>{const i=ANIONS.find(x=>x.ide===t);return !i||pools(lvl()).ans.includes(i)};
@@ -497,7 +606,8 @@ const trapSym=t=>{const i=ANIONS.find(x=>x.s===t)||CATIONS.find(x=>x.s===t);retu
 function pickPair(level){
   const {cats,ans}=pools(level);
   let cat=rnd(cats),an=rnd(ans);
-  if(game&&game.fresh&&game.freshLeft>0&&ans.includes(game.fresh)&&Math.random()<.6){an=game.fresh;game.freshLeft--} // show off the newcomer
+  const fr=game&&game.freshLeft>0&&game.fresh?game.fresh.filter(i=>cats.includes(i)||ans.includes(i)):[];
+  if(fr.length&&Math.random()<.6){const f=rnd(fr);if(f.c>0)cat=f;else an=f;game.freshLeft--} // show off the newcomer
   else if(save.ions==='poly'&&Math.random()<.45){ // lean toward polyatomic practice when it's on
     const pa=ans.filter(i=>i.poly);if(pa.length)an=rnd(pa);
   }
@@ -554,22 +664,25 @@ const PH=U;
 const starred=(c,a)=>(save.mastery[c+'|'+a]||0)>=5;
 function isPlain(ion){
   if(!game||game.kind!=='build')return false;
-  if(game.sub==='order')return !!game.plain;
-  const n=Math.abs(ion.c); // free build: an ion goes plain once its whole row/column is starred
-  return [1,2,3].every(k=>ion.c>0?starred(n,k):starred(k,n));
+  return fade()>=1;
 }
 function plainBox(ion){const cat=ion.c>0;return cat?{x:0,w:W-D-4}:{x:D+4,w:W-4}}
+// The puzzle help fades as a Bond game goes on:
+//   level 8: no notches (tiles still sized by charge)   level 11: no colors   level 14: every tile the same size
+const FADE_AT=[8,11,14];
+const fade=()=>game&&game.kind==='build'?FADE_AT.filter(l=>game.level>=l).length:0;
+const tileH=ion=>fade()>=3?U:Math.abs(ion.c)*U;
 function plainG(ion){
-  const cat=ion.c>0,{x,w}=plainBox(ion);
-  const fill=cat?'var(--cat)':'var(--an)',stroke=cat?'var(--cat-deep)':'var(--an-deep)';
+  const cat=ion.c>0,{x,w}=plainBox(ion),h=tileH(ion),grey=fade()>=2;
+  const fill=grey?'var(--tile)':cat?'var(--cat)':'var(--an)',stroke=grey?'var(--tile-deep)':cat?'var(--cat-deep)':'var(--an-deep)';
   const fs=ion.s.length>=5?13:ion.s.length>=3?16:19;
-  return `<rect x="${x}" y="1" width="${w}" height="${PH-2}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`+
-    `<text class="sym" style="font-size:${fs}px" x="${x+w/2}" y="${PH/2}" text-anchor="middle" dominant-baseline="central">${symSVG(ion.s,ion.c)}</text>`;
+  return `<rect x="${x}" y="1" width="${w}" height="${h-2}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`+
+    `<text class="sym" style="font-size:${fs}px" x="${x+w/2}" y="${h/2}" text-anchor="middle" dominant-baseline="central">${symSVG(ion.s,ion.c)}</text>`;
 }
 const anyG=ion=>isPlain(ion)?plainG(ion):pieceG(ion);
-const ionH=ion=>isPlain(ion)?PH:Math.abs(ion.c)*U;
+const ionH=ion=>isPlain(ion)?tileH(ion):Math.abs(ion.c)*U;
 function pieceSVG(ion,scale=1){
-  if(isPlain(ion)){const {x,w}=plainBox(ion);return `<svg width="${(w+4)*scale}" height="${(PH+4)*scale}" viewBox="${x-2} -2 ${w+4} ${PH+4}" role="img" aria-label="${ion.s} ${chargeText(ion.c)}">${plainG(ion)}</svg>`}
+  if(isPlain(ion)){const {x,w}=plainBox(ion),h=tileH(ion);return `<svg width="${(w+4)*scale}" height="${(h+4)*scale}" viewBox="${x-2} -2 ${w+4} ${h+4}" role="img" aria-label="${ion.s} ${chargeText(ion.c)}">${plainG(ion)}</svg>`}
   const n=Math.abs(ion.c),w=ion.c>0?W:W+D,h=n*U;
   return `<svg width="${(w+4)*scale}" height="${(h+4)*scale}" viewBox="-2 -2 ${w+4} ${h+4}" role="img" aria-label="${ion.s} ${chargeText(ion.c)}">${pieceG(ion)}</svg>`;
 }
@@ -611,18 +724,19 @@ function record(cc,ac){const k=cc+'|'+ac;save.mastery[k]=(save.mastery[k]||0)+1;
 // ================= HOME =================
 function renderHome(){
   $('coinCount').textContent=save.coins;
-  $('muteBtn').textContent=save.muted?'🔇':'🔊';
+  $('muteBtn').textContent=save.muted?'🔇':'🔊';musicBtn();
   const ca=CATIONS[5],no3=ANIONS.find(a=>a.s==='NO3');
   $('artBuild').innerHTML=`<svg width="190" height="100" viewBox="-2 -2 ${2*W+24} ${2*U+4}"><g>${pieceG(ca)}</g><g transform="translate(${W-D+18},0)">${pieceG(no3)}</g><g transform="translate(${W-D+18},${U})">${pieceG(no3)}</g></svg>`;
-  ['build-free','build-order','drop-pick','drop-type','drop-formula','drop-say'].forEach(k=>{
+  ['build-free','build-order','drop-pick','drop-type','drop-formula','drop-say','cmd-play'].forEach(k=>{
     const p=save.best[k+'-practice'],t=save.best[k+'-timed'];
-    $('best-'+k).textContent=(p||t)?`Best ${p||0} practice, ${t||0} timed`:(k==='drop-say'?'Say it out loud. Uses your mic.':'');
+    $('best-'+k).textContent=(p||t)?`Best ${p||0} practice, ${t||0} ${k==='cmd-play'?'battle':'timed'}`:(k==='drop-say'?'Say it out loud. Uses your mic.':'');
   });
   document.querySelectorAll('[data-ions]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ions===save.ions));
   document.querySelectorAll('[data-el]').forEach(b=>b.setAttribute('aria-pressed',String(+!!save.el)===b.dataset.el));
   let g='<div></div>';
   for(let a=1;a<=3;a++)g+=`<div class="hd a">${MINUS}${a}</div>`;
-  for(let c=1;c<=3;c++){
+  const rows=save.seen4||Object.keys(save.mastery).some(k=>k[0]==='4')?4:3;
+  for(let c=1;c<=rows;c++){
     g+=`<div class="hd c">+${c}</div>`;
     for(let a=1;a<=3;a++){
       const gg=gcd(c,a),m=a/gg,x=c/gg,k=c+'|'+a,n=Math.min(save.mastery[k]||0,5);
@@ -652,13 +766,13 @@ $('shelf').addEventListener('click',e=>{
 // ================= LOOP =================
 let game=null,lastMode=null,raf=0,lastT=0;
 function loop(t){const dt=Math.min(100,t-(lastT||t));lastT=t;if(game&&game.tick&&!game.paused)game.tick(dt);raf=requestAnimationFrame(loop)}
-function stop(){cancelAnimationFrame(raf);lastT=0;game=null;micStop();$('intro').hidden=true;introQ=[];try{speechSynthesis.cancel()}catch(e){}}
+function stop(){cancelAnimationFrame(raf);lastT=0;game=null;micStop();musicStop();$('intro').hidden=true;introQ=[];try{speechSynthesis.cancel()}catch(e){}}
 function start(mode){
   stop();lastMode=mode;
   const [kind,sub,pace]=mode.split('-'),timed=pace==='timed';
   document.querySelectorAll('[data-xt]').forEach(x=>x.hidden=!save.el);
   const st=save.stats[kind+'-'+sub]||(save.stats[kind+'-'+sub]={p:0,r:0,w:0});st.p++;persist();
-  if(kind==='build')startBuild(sub,timed);else startDrop(sub,timed);
+  if(kind==='build')startBuild(sub,timed);else if(kind==='cmd')startCmd(sub,timed);else startDrop(sub,timed);
   raf=requestAnimationFrame(loop);
 }
 function endGame(why){
@@ -672,11 +786,22 @@ function goHome(){stop();renderHome();show('home');flush()}
 
 // ================= LEVELS + NEW-ION SHOWCASE =================
 function levelUp(extra=''){
-  const before=pools(game.level),had=new Set([...before.cats,...before.ans].map(i=>i.s));
+  const before=pools(game.level),had=new Set([...before.cats,...before.ans].map(i=>i.k));
   game.level++;
   const after=pools(game.level);
-  const fresh=[...after.cats,...after.ans].filter(i=>i.poly&&!had.has(i.s));
-  if(fresh.length){game.fresh=fresh[0];game.freshLeft=3;showIntro(fresh)}
+  const fresh=[...after.cats,...after.ans].filter(i=>(i.poly||i.tm)&&!had.has(i.k));
+  const stage=game.kind==='build'?FADE_AT.indexOf(game.level):-1;
+  if(stage>=0){
+    const cards=[{stage}];
+    if(fresh.length){game.fresh=fresh;game.freshLeft=4;if(fresh.some(i=>i.c===4))save.seen4=true;
+      fresh.forEach(i=>{const g=i.tm&&cards.find(c=>c.tm===i.tm);if(g)g.ions.push(i);else cards.push({tm:i.tm,ions:[i]})})}
+    showIntro(cards);
+  }else if(fresh.length){
+    game.fresh=fresh;game.freshLeft=4;
+    if(fresh.some(i=>i.c===4))save.seen4=true;
+    const cards=[];fresh.forEach(i=>{const g=i.tm&&cards.find(c=>c.tm===i.tm);if(g)g.ions.push(i);else cards.push({tm:i.tm,ions:[i]})});
+    showIntro(cards);
+  }
   else toast('Level '+game.level+extra);
 }
 let introQ=[];
@@ -685,16 +810,40 @@ function showIntro(list){
   introQ=list.slice();game.paused=true;nextIntro();
 }
 function nextIntro(){
-  const ion=introQ.shift();
-  if(!ion||!game){closeIntro();return}
-  $('introLv').textContent=`Level ${game.level}: new polyatomic ion`;
-  {const n=Math.abs(ion.c),w=ion.c>0?W:W+D,h=n*U;$('introPc').innerHTML=`<svg width="${(w+4)*1.5}" height="${(h+4)*1.5}" viewBox="-2 -2 ${w+4} ${h+4}" aria-hidden="true">${pieceG(ion)}</svg>`}
-  $('introF').innerHTML=`${symHTML(ion.s)}<sup>${chargeText(ion.c)}</sup>`;
-  $('introF').style.color=ion.c>0?'var(--cat)':'';
-  $('introName').textContent=ionName(ion);
-  $('introCh').textContent=`Charge ${ion.c>0?'+':MINUS}${Math.abs(ion.c)}. It joins the mix from here on.`;
+  const card=introQ.shift();
+  if(!card||!game){closeIntro();return}
+  if(card.stage!=null){
+    const demo=[CATIONS.find(i=>i.s==='Ca'),ANIONS.find(i=>i.s==='Cl')];
+    $('introLv').textContent=`Level ${game.level}: less help`;
+    $('introPc').innerHTML=demo.map(i=>{const {x,w}=plainBox(i),h=tileH(i);return `<svg width="${(w+4)*1.3}" height="${(h+4)*1.3}" viewBox="${x-2} -2 ${w+4} ${h+4}" aria-hidden="true">${plainG(i)}</svg>`}).join('');
+    $('introF').innerHTML='';
+    $('introName').textContent=['No more notches','No more colors','Same-size pieces'][card.stage];
+    $('introCh').textContent=['The pieces are still sized by their charge, so a 2+ piece is twice as tall as a 1+ piece.',
+      'Read the charge on each piece. Positive ions still go on the left, negative on the right.',
+      'Every piece is the same size now. Use the + and − totals beside the box to balance the charges.'][card.stage];
+    $('introSpk').hidden=true;
+    $('intro').hidden=false;sfx.good();$('introGo').focus();
+    return;
+  }
+  $('introSpk').hidden=false;
+  const ions=card.ions,one=ions[0];
+  $('introLv').textContent=`Level ${game.level}: ${card.tm?(ions.length>1?'new metal ions':'new metal ion'):'new polyatomic ion'}`;
+  const sc=ions.length>1?1.2:1.5;
+  $('introPc').innerHTML=ions.map(ion=>{const n=Math.abs(ion.c),w=ion.c>0?W:W+D,h=n*U;return `<svg width="${(w+4)*sc}" height="${(h+4)*sc}" viewBox="-2 -2 ${w+4} ${h+4}" aria-hidden="true">${pieceG(ion)}</svg>`}).join('');
+  $('introF').innerHTML=ions.map(i=>`${symHTML(i.s)}<sup>${chargeText(i.c)}</sup>`).join('<span class="or">or</span>');
+  $('introF').style.color=one.c>0?'var(--cat)':'';
+  $('introName').textContent=ions.map(ionName).join(' or ');
+  if(card.tm){
+    const m=METAL[card.tm],M=m[0].toUpperCase()+m.slice(1),bits=[];
+    if(!game.sawTM)bits.push('The Roman numeral in a metal\'s name is its charge: iron(III) means Fe³⁺.');
+    game.sawTM=true;
+    bits.push(ions.length>1?`${M} can be ${ions.map(i=>i.c+'+').join(' or ')}, so the name has to say which.`:`${M} still gets a Roman numeral: ${one.n}.`);
+    if(card.tm==='Sn'||card.tm==='Pb')bits.push(`${M} isn't a transition metal, but it works the same way.`);
+    if(ions.some(i=>i.c===4)&&game.kind==='build')bits.push('The build box grows taller for 4+ ions.');
+    $('introCh').textContent=bits.join(' ');
+  }else $('introCh').textContent=`Charge ${one.c>0?'+':MINUS}${Math.abs(one.c)}. It joins the mix from here on.`;
   $('intro').hidden=false;sfx.good();$('introGo').focus();
-  if(!save.muted)setTimeout(()=>{if(!$('intro').hidden)speakName(ionName(ion))},450);
+  if(!save.muted)setTimeout(()=>{if(!$('intro').hidden)speakName(ions.map(ionName).join(', '))},450);
 }
 function closeIntro(){
   $('intro').hidden=true;introQ=[];
@@ -708,6 +857,7 @@ $('intro').addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault(
 const MAX_MISS=3;
 function startBuild(sub,timed){
   game={kind:'build',sub,timed,score:0,level:1,made:0,streak:0,tray:[],cat:[],an:[],acc:0,uid:0,locked:false,miss:0,target:null};
+  game.seq=makeSeq(sub);
   $('bTimerWrap').style.visibility=timed?'visible':'hidden';
   $('bLivesWrap').style.display=(timed&&sub==='order')?'':'none';
   $('bFormula').innerHTML='';$('bTarget').innerHTML='';
@@ -722,11 +872,20 @@ function startBuild(sub,timed){
 }
 // Extra time: everything timed runs 60% longer and points are halved
 const XT=()=>save.el?1.6:1;
-const pt=n=>save.el?Math.max(1,Math.round(n/2)):n;
+const pt=n=>Math.max(1,Math.round(n*(save.el?.5:1)*(save.ions==='mono'?.75:1))); // extra time: half; single-atom only: 3/4
 const spawnInterval=()=>Math.max(2200,6500-(game.level-1)*600)*XT();
 const orderTime=()=>Math.max(12000,32000-(game.level-1)*2500)*XT();
 function mk(ion){return {id:++game.uid,ion}}
-const trayCount=sym=>game.tray.filter(t=>t.ion.s===sym).length;
+const trayCount=key=>game.tray.filter(t=>t.ion.k===key).length;
+const kinds=()=>new Set(game.tray.map(t=>t.ion.k)).size;
+const trayInsert=t=>game.tray.splice(Math.floor(Math.random()*(game.tray.length+1)),0,t); // never just at the end
+// a look-alike that keeps a supplied partner from being obvious
+function decoyFor(ion){
+  const {cats,ans}=pools(game.level),pool=ion.c>0?cats:ans;
+  const sib=ion.tm&&pool.find(x=>x.tm===ion.tm&&x.k!==ion.k);if(sib)return sib;
+  const tr=(NAME_TRAPS[ion.s]||[]).map(n=>ANIONS.find(x=>x.ide===n)).filter(x=>x&&pool.includes(x));if(tr.length)return rnd(tr);
+  const same=pool.filter(x=>x.c===ion.c&&x.k!==ion.k);return same.length?rnd(same):null;
+}
 // what the box still needs to balance, given both kinds of ion are in it
 function boxNeed(){
   const cat=game.cat[0],an=game.an[0];
@@ -739,8 +898,8 @@ function boxNeed(){
 function missingIon(){
   const need=boxNeed();
   if(need){
-    if(trayCount(need.cat.s)<need.nc)return need.cat;
-    if(trayCount(need.an.s)<need.na)return need.an;
+    if(trayCount(need.cat.k)<need.nc)return need.cat;
+    if(trayCount(need.an.k)<need.na)return need.an;
     return null;
   }
   const {cats,ans}=pools(game.level);
@@ -757,10 +916,11 @@ function newIon(){
   const same=pool.filter(i=>(i.c>0)===wantCat&&(wantCat?cats:ans).includes(i));
   for(let k=0;k<15;k++){ // never more than 3 of the same ion waiting in the tray
     let ion;
-    if(!wantCat&&game.fresh&&game.freshLeft>0&&ans.includes(game.fresh)&&Math.random()<.35)ion=game.fresh;
+    const fr=game.freshLeft>0&&game.fresh?game.fresh.filter(i=>(wantCat?cats:ans).includes(i)):[];
+    if(fr.length&&Math.random()<.35)ion=rnd(fr);
     else if(same.length&&Math.random()<.35)ion=rnd(same);
     else ion=rnd(wantCat?cats:ans);
-    if(trayCount(ion.s)<3){if(ion===game.fresh)game.freshLeft--;return mk(ion)}
+    if(trayCount(ion.k)<3){if(fr.includes(ion))game.freshLeft--;return mk(ion)}
   }
   return mk(rnd(wantCat?cats:ans));
 }
@@ -770,7 +930,16 @@ function supplyNeed(){
   let n=0,ion;
   while(n++<6&&(ion=missingIon())){
     if(game.tray.length>=8){if(game.timed)break;game.tray.shift()}
-    game.tray.push(mk(ion));
+    trayInsert(mk(ion));
+    if(game.timed)bankTime(.25); // a handed-over piece buys back part of its own space
+    if(Math.random()<.6&&game.tray.length<(game.timed?6:8)){const d=decoyFor(ion);if(d&&trayCount(d.k)<2)trayInsert(mk(d))}
+  }
+  // always leave a real choice: at least 4 pieces, at least 3 different kinds
+  let guard=0;
+  while(guard++<20&&game.tray.length<8&&(game.tray.length<4||kinds()<3)){
+    const t=newIon();
+    if(game.tray.length>=4&&trayCount(t.ion.k))continue;
+    trayInsert(t);
   }
 }
 function newOrder(){
@@ -779,16 +948,24 @@ function newOrder(){
   game.target={cat,an,a,b};game.acc=0;game.cat=[];game.an=[];
   const tray=[];for(let i=0;i<a;i++)tray.push(cat);for(let i=0;i<b;i++)tray.push(an);
   // distractors: look-alike ions first, then random others
-  const used=new Set([cat.s,an.s]),dis=[];
-  const traps=(NAME_TRAPS[an.s]||[]).filter(trapName).map(nm=>ANIONS.find(x=>x.ide===nm)).filter(Boolean);
-  shuffle(traps).forEach(x=>{if(!used.has(x.s)&&dis.length<2){dis.push(x);used.add(x.s)}});
+  const used=new Set([cat.k,an.k]),dis=[];
   const {cats,ans}=pools(game.level);
-  while(dis.length<3){const x=Math.random()<.5?rnd(cats):rnd(ans);if(!used.has(x.s)){dis.push(x);used.add(x.s)}}
-  game.plain=starred(cat.c,-an.c);
-  if(game.plain&&!game.toldPlain){game.toldPlain=true;toast('★ Mastered. Shapes off: use the charges.')}
+  const sib=cat.tm&&cats.find(x=>x.tm===cat.tm&&x.k!==cat.k); // iron(II) is the decoy for iron(III)
+  if(sib){dis.push(sib);used.add(sib.k)}
+  const traps=(NAME_TRAPS[an.s]||[]).filter(trapName).map(nm=>ANIONS.find(x=>x.ide===nm)).filter(Boolean);
+  shuffle(traps).forEach(x=>{if(!used.has(x.k)&&dis.length<2){dis.push(x);used.add(x.k)}});
+  let g=0;while(dis.length<3&&g++<50){const x=Math.random()<.5?rnd(cats):rnd(ans);if(!used.has(x.k)){dis.push(x);used.add(x.k)}}
   game.tray=shuffle([...tray,...dis.slice(0,Math.max(1,8-tray.length))]).map(mk);
   $('bTarget').innerHTML=`<small>Build</small>${cat.n} ${an.ide}`;
   $('bFormula').innerHTML='';
+}
+// Timed free build: finishing a compound pushes the next spawn back, more for bigger compounds,
+// and pieces handed over to finish a compound push it back too, so big builds aren't a penalty.
+const BANK_MAX=1.5; // at most 1.5 spawns' worth of time in the bank
+function bankTime(spawns){
+  const iv=spawnInterval();
+  game.acc=Math.max(-BANK_MAX*iv,game.acc-spawns*iv);
+  return spawns*iv/1000;
 }
 function buildTick(dt){
   if(!game.timed||game.locked)return;
@@ -799,8 +976,10 @@ function buildTick(dt){
     if(game.acc>=lim)orderMiss();
     return;
   }
-  const iv=spawnInterval();
-  $('bTimer').style.width=Math.min(100,game.acc/iv*100)+'%';
+  const iv=spawnInterval(),bar=$('bTimer');
+  // below zero = banked time from finished compounds: the bar shows it in green, draining
+  if(game.acc<0){bar.classList.add('bank');bar.style.width=Math.min(100,-game.acc/(BANK_MAX*iv)*100)+'%'}
+  else{bar.classList.remove('bank');bar.style.width=Math.min(100,game.acc/iv*100)+'%'}
   if(game.acc>=iv){
     game.acc=0;
     if(game.tray.length>=8){endGame('The tray overflowed.');return}
@@ -824,18 +1003,20 @@ function renderBuild(){
   $('bScore').textContent=game.score;$('bLevel').textContent=game.level;
   $('bLives').textContent=`${game.miss} of ${MAX_MISS}`;
   const [p,q]=sums();
-  const hide=!game.locked&&(game.sub==='order'?game.plain:[...game.cat,...game.an].some(isPlain));
+  const hide=false;
   $('mPos').textContent=hide?'+?':'+'+p;$('mNeg').textContent=hide?MINUS+'?':MINUS+q;
-  const h=6*U,w=2*W;
+  const colH=col=>col.reduce((t,i)=>t+ionH(i),0);
+  let need=Math.max(colH(game.cat),colH(game.an));
+  if(game.sub==='order'&&game.target){const t=game.target;need=Math.max(need,t.a*ionH(t.cat),t.b*ionH(t.an))}
+  const h=Math.max(6*U,need),w=2*W,zs=1; // grows to fit, pieces stay full size
   let s=`<rect x="0" y="0" width="${W-D}" height="${h}" rx="8" fill="none" stroke="var(--line)" stroke-dasharray="5 5"/>`+
         `<rect x="${W}" y="0" width="${W}" height="${h}" rx="8" fill="none" stroke="var(--line)" stroke-dasharray="5 5"/>`;
   let y=0;game.cat.forEach(i=>{s+=`<g transform="translate(0,${y})">${anyG(i)}</g>`;y+=ionH(i)});
   y=0;game.an.forEach(i=>{s+=`<g transform="translate(${W-D},${y})">${anyG(i)}</g>`;y+=ionH(i)});
-  const svg=$('zoneSvg');svg.setAttribute('viewBox',`-2 -2 ${w+4} ${h+4}`);svg.setAttribute('width',w+4);svg.setAttribute('height',h+4);svg.innerHTML=s;
+  const svg=$('zoneSvg');svg.setAttribute('viewBox',`-2 -2 ${w+4} ${h+4}`);svg.setAttribute('width',(w+4)*zs);svg.setAttribute('height',(h+4)*zs);svg.innerHTML=s;
   renderTray();
 }
 function renderTray(){
-  if(game.sub==='free'&&!game.toldPlain&&game.tray.some(t=>isPlain(t.ion))){game.toldPlain=true;toast('★ Mastered ions lose their shapes. Use the charges.')}
   $('tray').innerHTML=game.tray.map(t=>`<button class="piece" data-id="${t.id}" aria-label="Add ${t.ion.s} ${chargeText(t.ion.c)}">${pieceSVG(t.ion,.9)}</button>`).join('');
   $('trayCap').textContent=(game.timed&&game.sub==='free')?`${game.tray.length} of 8 spaces used`:`${game.tray.length} ions`;
 }
@@ -846,11 +1027,11 @@ function addToZone(id){
   const ion=game.tray[idx].ion,isCat=ion.c>0,col=isCat?game.cat:game.an;
   if(game.sub==='order'){
     const t=game.target,want=isCat?t.cat:t.an;
-    if(ion.s!==want.s){game.streak=0;reject(`That's ${ionName(ion)}. You need ${ionName(want)}.`);return}
+    if(ion.k!==want.k){game.streak=0;reject(`That's ${ionName(ion)}. You need ${ionName(want)}.`);return}
   }
-  if(col.length&&col[0].s!==ion.s){reject(`One kind of ion per side. This side has ${col[0].s}.`);return}
+  if(col.length&&col[0].k!==ion.k){reject(`One kind of ion per side. This side has ${col[0].s}${chargeText(col[0].c)}.`);return}
   const units=col.reduce((s,i)=>s+Math.abs(i.c),0)+Math.abs(ion.c);
-  if(units>6){reject(isPlain(ion)?'Too much charge on that side. Try a different ion.':'Too tall. Try a different ion.');return}
+  if(units>boxCap()){reject(isPlain(ion)?'Too much charge on that side. Try a different ion.':'Too tall. Try a different ion.');return}
   col.push(ion);game.tray.splice(idx,1);sfx.snap();setMsg('');
   const [p,q]=sums();
   if(p&&q&&p===q)complete();else{supplyNeed();renderBuild();if(!game.timed&&game.sub==='free')topUp()}
@@ -867,7 +1048,12 @@ function complete(){
     pts=pt(pts);
     game.score+=pts;addCoins(pts);record(cat.c,-an.c);game.made++;sfx.good();tally('build-'+game.sub,true);
     $('bFormula').innerHTML=fHTML(cat,an,a,b);
-    setMsg(`${cat.n} ${an.ide}  +${pts}`,'good');$('bScore').textContent=game.score;
+    let extra='';
+    if(game.sub==='free'&&game.timed){
+      const pieces=a+b; // NaCl 0.2 spawns, CaCl2 0.3, Al2(SO4)3 0.55, Pb3(PO4)4 0.8
+      extra=`  ⏱ +${bankTime(.35*Math.min(2.5,.5+.3*(pieces-2)+(cat.poly||an.poly?.2:0))).toFixed(1)}s`;
+    }
+    setMsg(`${cat.n} ${an.ide}  +${pts}${extra}`,'good');$('bScore').textContent=game.score;
   }else{
     game.streak=0;const pts=pt(5*game.level);game.score+=pts;addCoins(pts);game.made++;sfx.snap();tally('build-'+game.sub,false,`${cat.n} ${an.ide}`);
     const m=a/g,x=b/g;
@@ -882,14 +1068,14 @@ function complete(){
     else{
       $('bFormula').innerHTML='';
       if(!game.timed)topUp();
-      if(game.timed&&game.tray.length===0)game.tray.push(newIon(),newIon());
+      if(game.timed)supplyNeed();
     }
     renderBuild();
   },1400);
 }
 function topUp(){
   supplyNeed();
-  while(game.tray.length<6)game.tray.push(newIon());
+  while(game.tray.length<6)trayInsert(newIon());
   renderTray();
 }
 $('clearBtn').addEventListener('click',()=>{
@@ -935,6 +1121,7 @@ function balanceHTML(c){
 }
 function startDrop(sub,timed){
   game={kind:'drop',sub,timed,score:0,level:1,right:0,stack:[],cur:null,y:0,sayTyped:false,listenAt:0};
+  game.seq=makeSeq(sub);
   $('nLivesWrap').style.display=timed?'':'none';
   game.tick=dropTick;
   if(sub==='say'&&!micStart()){game.sayTyped=true;game.micDenied=true} // started inside the click, so Chrome can ask for the mic
@@ -943,17 +1130,28 @@ function startDrop(sub,timed){
 function nameOptions(cat,an,a,b){
   const correct=`${cat.n} ${an.ide}`,pref=['','mono','di','tri'];
   const traps=[...(NAME_TRAPS[an.s]||[]).filter(trapName).map(t=>`${cat.n} ${t}`),...(CAT_TRAPS[cat.s]||[]).map(t=>`${t} ${an.ide}`)];
+  if(cat.tm){ // the classic Roman numeral mistakes
+    const m=METAL[cat.tm],sib=pools(lvl()).cats.find(x=>x.tm===cat.tm&&x.k!==cat.k);
+    const mt=[];
+    if(sib)mt.push(`${sib.n} ${an.ide}`);                              // the other charge
+    if(a>1&&ROM[a]&&a!==cat.c)mt.push(`${m}(${ROM[a]}) ${an.ide}`);   // numeral copied from the metal's subscript
+    if(b>1&&ROM[b]&&b!==cat.c)mt.push(`${m}(${ROM[b]}) ${an.ide}`);   // numeral copied from the anion count
+    mt.push(`${m} ${an.ide}`);                                         // numeral left out
+    traps.unshift(...shuffle(mt).slice(0,2));
+  }else if(cat.s==='Zn'||cat.s==='Ag')traps.unshift(`${cat.n}(${ROM[cat.c]}) ${an.ide}`); // numeral that doesn't belong
   const others=[];
   if(an.n)others.push(`${cat.n} ${an.n}`);
   others.push(b>1?`${cat.n} ${pref[b]}${an.ide}`:a>1?`${pref[a]}${cat.n} ${an.ide}`:`${cat.n} mono${an.ide}`);
   others.push(`${an.ide} ${cat.n}`);
   const same=pools(lvl()).ans.filter(x=>x.c===an.c&&x.s!==an.s&&x.poly===an.poly);
   if(same.length)others.push(`${cat.n} ${rnd(same).ide}`);
-  const pick=[...new Set([...shuffle(traps).slice(0,2),...shuffle(others)])].filter(x=>x!==correct).slice(0,3);
+  const top=cat.tm||cat.s==='Zn'||cat.s==='Ag'?traps.slice(0,2):shuffle(traps).slice(0,2);
+  const pick=[...new Set([...top,...shuffle(others)])].filter(x=>x!==correct).slice(0,3);
   return {opts:shuffle([correct,...pick]),correct};
 }
 function formulaOptions(cat,an,a,b){
   const right=fHTML(cat,an,a,b),traps=[],others=[];
+  if(cat.tm){const sib=pools(lvl()).cats.find(x=>x.tm===cat.tm&&x.k!==cat.k);if(sib){const [sa,sb]=ratio(sib,an);traps.push(fHTML(cat,an,sa,sb))}} // balanced for the other charge
   const fake=(s,src)=>({s,poly:isPolySym(s)||src.poly});
   (FORM_TRAPS[an.s]||[]).filter(trapSym).forEach(t=>traps.push(fHTML(cat,fake(t,an),a,b)));
   (FORM_TRAPS[cat.s]||[]).filter(trapSym).forEach(t=>traps.push(fHTML(fake(t,cat),an,a,b)));
@@ -1032,11 +1230,20 @@ function accepted(c){
   const cn=[c.cat.n,...(c.cat.alt||[])],an=[c.an.ide,...(c.an.alt||[])],out=[];
   cn.forEach(x=>an.forEach(y=>out.push(norm(x+' '+y))));return out;
 }
+// a reminder under a wrong typed answer when the Roman numeral was the problem
+function numeralTip(c,raw){
+  if(!raw)return '';
+  const toks=norm(raw).split(' '),hasRom=toks.some(t=>/^(i|ii|iii|iv|v|vi)$/.test(t));
+  if(c.cat.tm&&/\d/.test(raw))return 'Write the charge as a Roman numeral in parentheses, like iron(III). Typing iron iii works too.';
+  if(c.cat.tm&&!hasRom)return 'This metal can have more than one charge, so its name needs a Roman numeral, like iron(III).';
+  if((c.cat.s==='Zn'||c.cat.s==='Ag')&&(hasRom||/\d/.test(raw)))return 'Zinc and silver have only one charge, so they don\'t get a Roman numeral.';
+  return '';
+}
 function checkTyped(){
   if(!game||game.answered||!game.cur||game.paused)return;
-  const v=norm($('typeIn').value);if(!v)return;
-  if(accepted(game.cur).includes(v)||(game.sub==='say'&&saidIt(game.cur,v)))win();
-  else miss(null,false,v);
+  const raw=$('typeIn').value,v=norm(raw);if(!v)return;
+  if(accepted(game.cur).includes(v)||(game.sub==='say'&&saidIt(game.cur,raw)))win();
+  else miss(null,false,raw);
 }
 function win(){
   const c=game.cur;game.answered=true;
@@ -1067,6 +1274,7 @@ function miss(i,landed,typed){
   }else if(game.sub==='type'){
     const f=$('fb');f.className='fb bad';
     f.textContent=(typed?`Not quite. `:'Time. ')+`It's ${c.name}.`;
+    const tip=numeralTip(c,typed);if(tip){f.innerHTML=esc(f.textContent)+`<span class="tip">${tip}</span>`;game.tipShown=true}
     $('typeIn').disabled=true;
   }else{
     const ok=c.opts.indexOf(c.correct);
@@ -1080,7 +1288,7 @@ function miss(i,landed,typed){
       if(game.stack.length>=STACK_MAX){game.cur=null;renderDrop();setTimeout(()=>endGame('The well filled up.'),500);return}
     }
     nextDrop();
-  },game.sub==='say'?3200:game.sub==='type'?2200:game.sub==='formula'?3200:1600);
+  },game.sub==='say'?3200:game.sub==='type'?(game.tipShown?(game.tipShown=false,3800):2200):game.sub==='formula'?3200:1600);
 }
 $('answers').addEventListener('click',e=>{const b=e.target.closest('.ans');if(b)answer(+b.dataset.i)});
 window.addEventListener('keydown',e=>{if(game&&game.kind==='drop'&&isChoice(game.sub)&&/^[1-4]$/.test(e.key))answer(+e.key-1)});
@@ -1088,6 +1296,242 @@ window.addEventListener('keydown',e=>{if(game&&game.kind==='drop'&&isChoice(game
 $('drop').addEventListener('click',e=>{
   if(!game||game.kind!=='drop'||game.sub!=='say'||!game.cur)return;
   if(e.target.closest('[data-say]')||(e.target.closest('#dropCard')&&(!game.timed||game.answered)))speakName(game.cur.name);
+});
+
+// ================= MUSIC (Charge Command) =================
+// A light, tense loop made on the fly: minor bass pulse, soft arpeggio, ticking hats. Speeds up with the level.
+const MUS={on:false,timer:0,next:0,step:0,gain:null};
+const PROG=[[45,57,60,64],[41,53,57,60],[43,55,59,62],[40,52,56,59]]; // Am F G E (MIDI)
+const mhz=n=>440*Math.pow(2,(n-69)/12);
+function musVoice(f,t,dur,type,vol){
+  const o=actx.createOscillator(),g=actx.createGain();
+  o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0005,t+dur);
+  o.connect(g).connect(MUS.gain);o.start(t);o.stop(t+dur+.05);
+}
+function musTick(t){
+  const s=MUS.step%64,chord=PROG[Math.floor(s/16)],sixteenth=s%16;
+  if(sixteenth%2===0)musVoice(mhz(chord[0]-12+(sixteenth%8===6?12:0)),t,.18,'triangle',.5);      // bass pulse
+  if(sixteenth%2===1||game&&game.level>=6)musVoice(mhz(chord[1+(s%3)]+12),t,.12,'sine',.16);        // arpeggio, busier from level 6
+  {const b=actx.createBufferSource(),buf=actx.createBuffer(1,800,actx.sampleRate),d=buf.getChannelData(0);
+   for(let i=0;i<800;i++)d[i]=(Math.random()*2-1)*(1-i/800);
+   const hp=actx.createBiquadFilter(),g=actx.createGain();hp.type='highpass';hp.frequency.value=7000;
+   g.gain.value=sixteenth%4===2?.12:.04;b.buffer=buf;b.connect(hp).connect(g).connect(MUS.gain);b.start(t)}           // hats
+  if(s%16===0&&Math.floor(s/16)===3)musVoice(mhz(68),t,.6,'sine',.12);                                // G# on the E chord: suspense
+  MUS.step++;
+}
+function musicStart(){
+  if(MUS.on||save.music===false)return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+    MUS.gain=actx.createGain();MUS.gain.gain.value=.07;MUS.gain.connect(actx.destination);
+    MUS.on=true;MUS.step=0;MUS.next=actx.currentTime+.1;
+    MUS.timer=setInterval(()=>{
+      if(!game||game.kind!=='cmd'){musicStop();return}
+      const bpm=Math.min(150,96+(game.level-1)*5),six=60/bpm/4;
+      while(MUS.next<actx.currentTime+.25){if(!game.paused)musTick(MUS.next);MUS.next+=six}
+    },60);
+  }catch(e){MUS.on=false}
+}
+function musicStop(){
+  clearInterval(MUS.timer);MUS.timer=0;
+  if(MUS.on&&MUS.gain){const g=MUS.gain;try{g.gain.setTargetAtTime(0,actx.currentTime,.05);setTimeout(()=>g.disconnect(),400)}catch(e){}}
+  MUS.on=false;MUS.gain=null;
+}
+function musicBtn(){const b=$('musicBtn');b.classList.toggle('off',save.music===false);b.setAttribute('aria-pressed',String(save.music!==false))}
+$('musicBtn').addEventListener('click',()=>{
+  save.music=save.music===false;persist();musicBtn();
+  if(save.music!==false&&game&&game.kind==='cmd')musicStart();else musicStop();
+});
+
+// ================= CHARGE COMMAND =================
+// Compounds fall toward the labs. The first shot names one ion's charge and cracks it off;
+// the second shot finishes the other ion. Metals with more than one charge are armored:
+// the anion has to go first, because its charge is how you work out the metal's.
+// Only the lowest compound can be shot. Skip lets it fall (and hit a lab) so you can move on.
+const LABS=4,LAB_H=58;
+const FLASK=`<svg width="46" height="50" viewBox="0 0 46 50" aria-hidden="true"><path d="M12 33h22l5.5 8.5A3 3 0 0 1 37 46H9a3 3 0 0 1-2.5-4.5z" class="liq"/><path d="M16 3h14M19 3v15L6.5 40.5A4 4 0 0 0 10 47h26a4 4 0 0 0 3.5-6.5L27 18V3" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+const FLASK_BROKEN=`<svg width="46" height="50" viewBox="0 0 46 50" aria-hidden="true"><ellipse cx="23" cy="47.5" rx="22" ry="2.6" class="liq"/><path d="M7.5 38 L12 31 L15.5 35 L19 28.5 L23 34 L27 29 L30.5 34.5 L34 30.5 L38.5 38 L39.5 40.5A4 4 0 0 1 36 47H10a4 4 0 0 1-3.5-6.5z" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round"/><path d="M14 20l4 -3 2 4z M30 16l4 2 -3 3z M22 10l3 1 -2 3z" fill="var(--ink)" opacity=".55"/></svg>`;
+// difficulty: compounds fall faster, arrive more often, and more share the sky as levels go up
+const cmdFall=()=>(game.timed?Math.max(6000,18000-(game.level-1)*1500):32000)*XT();
+const cmdEvery=()=>(game.timed?Math.max(1800,6000-(game.level-1)*500):900)*XT();
+const cmdCap=()=>game.timed?Math.min(5,1+Math.floor(game.level/2)):1;
+const skyW=()=>$('sky').clientWidth||600,skyH=()=>$('sky').clientHeight||420;
+const labX=i=>(i+.5)/LABS*skyW();
+function startCmd(sub,timed){
+  game={kind:'cmd',sub,timed,score:0,level:1,made:0,streak:0,ms:[],uid:0,acc:0,target:null,shot:null,labs:Array(LABS).fill(4),seen:{}};
+  game.seq=makeSeq(sub);game.tick=cmdTick;
+  $('cLabsWrap').style.display=timed?'':'none';
+  $('sky').innerHTML=`<svg class="trails" id="trails"></svg><div class="labs" id="labs"></div>`;
+  show('cmd');renderLabs();cmdHud();cmdMsg(timed?'Defend the labs. Fire the right charges at the lowest compound.':'Fire the right charges at the compound.');
+  spawnMissile();musicStart();
+}
+// a flask's liquid is its defense: each misfire it shoots drains a quarter; empty or hit, it's out
+function flaskSVG(i,q){
+  const top=47-q/4*25,col=q>=3?'var(--good)':q===2?'var(--gold)':'var(--bad)';
+  return `<svg width="46" height="50" viewBox="0 0 46 50" aria-hidden="true"><defs><clipPath id="fl${i}"><path d="M19 3v15L6.5 40.5A4 4 0 0 0 10 47h26a4 4 0 0 0 3.5-6.5L27 18V3z"/></clipPath></defs>`+
+    `<rect x="0" y="${top}" width="46" height="${50-top}" fill="${col}" opacity=".85" clip-path="url(#fl${i})" class="lvl"/>`+
+    `<path d="M16 3h14M19 3v15L6.5 40.5A4 4 0 0 0 10 47h26a4 4 0 0 0 3.5-6.5L27 18V3" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function renderLabs(breaking=-1,draining=-1){
+  $('labs').innerHTML=game.labs.map((q,i)=>`<div class="lab${q?'':' down'}${i===breaking?' breaking':''}${i===draining?' draining':''}" aria-label="${q?`Lab ${i+1}, ${q} of 4 full`:`Lab ${i+1}, out`}">${q?flaskSVG(i,q):FLASK_BROKEN}</div>`).join('');cmdHud();
+}
+function cmdHud(){$('cScore').textContent=game.score;$('cLevel').textContent=game.level;$('cLabs').textContent=`${game.labs.filter(Boolean).length} of ${LABS}`}
+function cmdMsg(t,cls=''){const m=$('cMsg');m.innerHTML=t;m.className='msg '+cls}
+const needSign=m=>m.stage==='whole'?(m.tm?-1:1):m.stage==='an'?-1:1;
+const helpOn=m=>game.level<=6||(m.tm&&(game.seen[m.c.cat.tm]||0)<=3);
+function spawnMissile(){
+  const {cat,an}=pickPair(game.level),[a,b]=ratio(cat,an);
+  if(cat.tm)game.seen[cat.tm]=(game.seen[cat.tm]||0)+1;
+  const alive=game.labs.map((v,i)=>v?i:-1).filter(i=>i>=0);
+  const m={id:++game.uid,c:{cat,an,a,b,name:`${cat.n} ${an.ide}`},p:0,x0:.1+Math.random()*.8,lab:alive.length?rnd(alive):0,
+    stage:'whole',tm:!!cat.tm,wrong:0,speed:1/cmdFall()};
+  m.el=document.createElement('div');m.el.className='msl'+(m.tm?' armored':'');
+  m.line=document.createElementNS('http://www.w3.org/2000/svg','line');m.line.setAttribute('class','trail');
+  $('sky').appendChild(m.el);$('trails').appendChild(m.line);
+  game.ms.push(m);drawMissile(m,true);
+  if(!game.target)setTarget(lowest());else markTargets();
+}
+function drawMissile(m,content){
+  const {cat,an,a,b}=m.c;
+  if(content){
+    let h='',help='';
+    if(m.stage==='whole')h=fHTML(cat,an,a,b);
+    else if(m.stage==='an'){h=`${b>1?b+'× ':''}<span class="x">${symHTML(an.s)}</span>`;if(helpOn(m))help=`${a} × ${ionHTML(cat)} = +${a*cat.c}`}
+    else{h=`${a>1?a+'× ':''}<span class="m">${symHTML(cat.s)}</span>`;if(helpOn(m))help=`${b} × ${ionHTML(an)} = ${MINUS}${b*-an.c}`}
+    m.el.innerHTML=h+(help?`<small class="help">${help}</small>`:'');
+  }
+  const W2=skyW(),H2=skyH()-LAB_H,lx=(m.lab+.5)/LABS,x=(m.x0+(lx-m.x0)*m.p)*W2,y=Math.max(m.el.offsetHeight||40,m.p*H2);
+  m.x=x;m.y=y;m.el.style.left=x+'px';m.el.style.top=y+'px';
+  m.line.setAttribute('x1',m.x0*W2);m.line.setAttribute('y1',0);m.line.setAttribute('x2',x);m.line.setAttribute('y2',y);
+}
+const lowest=()=>game.ms.filter(m=>!m.skipped).reduce((best,m)=>!best||m.p>best.p?m:best,null);
+function markTargets(){game.ms.forEach(x=>{x.el.classList.toggle('sel',x===game.target);x.el.classList.toggle('dim',x!==game.target)})}
+function setTarget(m){game.target=m||null;markTargets();renderLauncher()}
+function renderName(){
+  const t=game.target,N=$('cName');
+  if(!t){N.innerHTML='&nbsp;';return}
+  const {cat,an}=t.c,done=p=>`<span class="ok">✓</span>`;
+  const catName=cat.tm?`${METAL[cat.tm]}(?)`:cat.n;
+  const catDone=t.stage==='an',anDone=t.stage==='cat';
+  N.innerHTML=`<span class="m${catDone?' solved':''}">${catName}${catDone?done():''}</span> <span class="x${anDone?' solved':''}">${an.ide}${anDone?done():''}</span>`;
+}
+function renderLauncher(){
+  renderName();
+  const t=game.target,L=$('launch'),busy=!!game.shot;
+  const skip=`<button class="skip" id="skipBtn"${t?'':' disabled'}><kbd>S</kbd>Skip</button>`;
+  if(!t){L.className='launch';L.innerHTML=[1,2,3,4].map(n=>`<button class="fire" disabled>+${n}</button>`).join('')+skip;return}
+  const sign=needSign(t),ion=sign>0?t.c.cat:t.c.an,max=sign>0?4:3;
+  L.className='launch'+(sign<0?' neg':'');
+  L.innerHTML=Array.from({length:max},(_,i)=>`<button class="fire" data-q="${i+1}"${busy?' disabled':''}><kbd>${i+1}</kbd>${sign>0?'+':MINUS}${i+1}</button>`).join('')+skip;
+  const who=`<b>${symHTML(ion.s)}</b>`;
+  if(t.stage==='whole'&&t.tm)cmdMsg(`Armored: a metal with more than one charge. Find the anion first. Charge on ${who}?`);
+  else if(t.stage==='cat'&&t.tm)cmdMsg(`Now the metal: what charge balances it? Charge on ${who}?`);
+  else cmdMsg(`Charge on ${who}?`);
+}
+// the nearest standing flask fires the ion, with the chosen charge, at the compound
+function fire(n){
+  const t=game&&game.kind==='cmd'?game.target:null;if(!t||game.paused||game.shot)return;
+  const sign=needSign(t),ion=sign>0?t.c.cat:t.c.an,val=sign*n;
+  const alive=game.labs.map((v,i)=>v?i:-1).filter(i=>i>=0);
+  const from=(alive.length?alive:[0,1,2,3]).reduce((b,i)=>Math.abs(labX(i)-t.x)<Math.abs(labX(b)-t.x)?i:b);
+  const el=document.createElement('div');el.className='shot'+(sign<0?' neg':'');
+  el.innerHTML=`${symHTML(ion.s)}<sup>${chargeText(val)}</sup>`;
+  $('sky').appendChild(el);
+  game.shot={el,t,ok:val===ion.c,ion,val,from,sx:labX(from),sy:skyH()-LAB_H+6,age:0,dur:300};
+  tone([700,980],.05,'square');renderLauncher();moveShot();
+}
+function moveShot(){
+  const s=game.shot,t=s.t,f=Math.min(1,s.age/s.dur),e=1-(1-f)*(1-f);
+  const tx=t.x,ty=t.y-(t.el.offsetHeight||40)/2;
+  s.el.style.left=(s.sx+(tx-s.sx)*e)+'px';s.el.style.top=(s.sy+(ty-s.sy)*e)+'px';
+  return f>=1;
+}
+function shotLands(){
+  const s=game.shot;game.shot=null;
+  const t=s.t;
+  if(!game.ms.includes(t)){s.el.remove();renderLauncher();return}
+  if(!s.ok){
+    s.el.classList.add('miss');setTimeout(()=>s.el.remove(),500); // bounces off
+    t.wrong++;game.streak=0;t.speed*=1.2;sfx.bad();
+    t.el.classList.remove('hit');void t.el.offsetWidth;t.el.classList.add('hit');
+    renderLauncher();
+    cmdMsg(`${ionHTML({s:s.ion.s,c:s.val})} bounced off. It's speeding up! Try again.`,'bad');
+    if(game.timed&&game.labs[s.from]>0){
+      game.labs[s.from]--;
+      if(game.labs[s.from]===0){renderLabs(s.from);tone([300,150],.15,'sawtooth');cmdMsg(`${ionHTML({s:s.ion.s,c:s.val})} bounced off, and that flask ran dry.`,'bad')}
+      else renderLabs(-1,s.from);
+      if(!game.labs.some(Boolean)){game.tick=()=>{};setTimeout(()=>{if(game&&game.kind==='cmd')endGame('All the labs are empty.')},900)}
+    }
+    return;
+  }
+  s.el.remove();sfx.snap();
+  burst(t,`${ionHTML(s.ion)} ✓`);
+  if(t.stage==='whole'){
+    t.stage=t.tm?'cat':'an';t.speed*=1.15;t.el.classList.remove('armored');drawMissile(t,true);renderLauncher();return;
+  }
+  destroy(t);
+}
+function burst(m,html,cls=''){
+  const b=document.createElement('div');b.className='burst '+cls;b.innerHTML=html;
+  b.style.left=m.x+'px';b.style.top=m.y+'px';$('sky').appendChild(b);setTimeout(()=>b.remove(),900);
+}
+function removeMissile(m){
+  m.el.remove();m.line.remove();game.ms=game.ms.filter(x=>x!==m);
+  if(game.target===m)setTarget(lowest());
+}
+function destroy(t){
+  const {cat,an,a,b}=t.c;
+  const mult=((cat.poly||an.poly)?1.5:1)*(cat.tm?1.5:1)*(t.wrong?.5:1);
+  const pts=pt(Math.round((10+game.level*3+(1-t.p)*10)*mult)+(game.streak>2?5*game.streak:0));
+  game.streak++;game.score+=pts;addCoins(pts);sfx.good();
+  if(!t.wrong)record(cat.c,-an.c);
+  tally('cmd-play',!t.wrong,t.wrong?t.c.name:'');
+  burst(t,`${a>1?a+' ':''}${ionHTML(cat)} + ${b>1?b+' ':''}${ionHTML(an)}  +${pts}`);
+  removeMissile(t);game.made++;cmdHud();
+  cmdMsg(`${esc(t.c.name)}  +${pts}`,'good');
+  if(game.made%5===0){
+    levelUp();
+    if(game.timed){const i=game.labs.findIndex(q=>q===0);if(i>=0){game.labs[i]=4;renderLabs();cmdMsg('Level up: one lab rebuilt.','good')}}
+    cmdHud();
+  }
+}
+function skip(){
+  const t=game&&game.kind==='cmd'?game.target:null;if(!t||game.paused)return;
+  t.skipped=true;t.speed=Math.max(t.speed,(1-t.p)/700);t.el.classList.remove('sel');t.el.classList.add('skipping');
+  if(game.shot&&game.shot.t===t){game.shot.el.remove();game.shot=null}
+  setTarget(lowest());
+}
+function landed(t){
+  const {cat,an,a,b}=t.c;
+  sfx.bad();game.streak=0;tally('cmd-play',false,t.c.name);
+  const boom=document.createElement('div');boom.className='boom';
+  let i=t.lab;if(game.timed&&!game.labs[i])i=game.labs.findIndex(q=>q>0);if(i<0)i=t.lab;
+  boom.style.left=labX(i)+'px';$('sky').appendChild(boom);setTimeout(()=>boom.remove(),700);
+  removeMissile(t);
+  cmdMsg(`It landed. ${fHTML(cat,an,a,b)} is ${a} ${ionHTML(cat)} and ${b} ${ionHTML(an)}.`,'bad');
+  if(game.timed){
+    game.labs[i]=0;tone([140,90],.18,'sawtooth'); // a direct hit loses whatever was left in it
+    renderLabs(i);
+    if(!game.labs.some(Boolean)){game.tick=()=>{};setTimeout(()=>{if(game&&game.kind==='cmd')endGame('All the labs are down.')},900)}
+  }
+}
+function cmdTick(dt){
+  game.ms.slice().forEach(m=>{m.p+=m.speed*dt;if(m.p>=1)landed(m);else drawMissile(m,false)});
+  if(game.shot){game.shot.age+=dt;if(moveShot())shotLands()}
+  if(!game.target&&game.ms.length)setTarget(lowest());
+  game.acc+=dt;
+  if(game.ms.length<cmdCap()&&(game.acc>=cmdEvery()||(!game.ms.length&&game.acc>700))){game.acc=0;spawnMissile()}
+}
+$('launch').addEventListener('click',e=>{
+  if(e.target.closest('#skipBtn')){skip();return}
+  const b=e.target.closest('.fire[data-q]');if(b)fire(+b.dataset.q);
+});
+window.addEventListener('keydown',e=>{
+  if(!game||game.kind!=='cmd'||game.paused)return;
+  if(/^[1-4]$/.test(e.key)){fire(+e.key);return}
+  if(e.key==='s'||e.key==='S'){skip()}
 });
 
 // ================= SPEECH =================
@@ -1140,8 +1584,16 @@ function micBlocked(why){
 }
 // Speech matching. Chrome sometimes hears "sulphate" or drops a letter, so allow one slip per word,
 // but only when the slip isn't closer to a different real name (nitrate vs nitride, chloride vs chlorine).
-const sNorm=t=>norm(String(t).replace(/sulph/gi,'sulf'));
-const ALL_CAT=[...new Set([...CATIONS.flatMap(c=>[c.n,...(c.alt||[])]),'ammonia'])].map(norm);
+// "iron three", "iron 3", "iron III" and dictated "iron(III)" all become "iron iii"
+const NUMW={one:'i',two:'ii',three:'iii',four:'iv','1':'i','2':'ii','3':'iii','4':'iv'};
+const METAL_RE=new RegExp(`\\b(${Object.values(METAL).join('|')})\\s*\\(?\\s*(to|too|for|won)\\b`,'g');
+const sNorm=t=>{
+  let x=String(t).toLowerCase().replace(/sulph/g,'sulf');
+  x=x.replace(METAL_RE,(m,a,b)=>a+' '+({to:'ii',too:'ii',for:'iv',won:'i'}[b])); // "tin for", "iron to"
+  x=x.replace(/\b(one|two|three|four|[1-4])\b/g,m=>' '+NUMW[m]+' ');
+  return norm(x);
+};
+const ALL_CAT=[...new Set([...CATIONS.flatMap(c=>[c.n,...(c.alt||[])]).map(n=>norm(n).split(' ')[0]),'ammonia'])];
 const ALL_AN=[...new Set([...ANIONS.flatMap(a=>[a.ide,a.n,...(a.alt||[])]),...Object.values(NAME_TRAPS).flat(),'hydride','chlorate','phosphite','carbide'].filter(Boolean))].map(norm);
 function lev(a,b){
   if(a===b)return 0;if(Math.abs(a.length-b.length)>2)return 9;
@@ -1160,10 +1612,15 @@ function saidIt(c,raw){
   const t=' '+sNorm(raw)+' ';
   if(accepted(c).some(a=>t.includes(' '+a+' ')))return true;
   const w=t.trim().split(' ');
-  const catOK=[c.cat.n,...(c.cat.alt||[])].map(norm),anOK=[c.an.ide,...(c.an.alt||[])].map(norm);
-  for(let i=0;i<w.length-1;i++){
-    if(!closeTo(w[i],catOK,ALL_CAT))continue;
-    for(const k of [1,2]){const seg=w.slice(i+1,i+1+k).join(' ');if(seg&&closeTo(seg,anOK,ALL_AN))return true}
+  const anOK=[c.an.ide,...(c.an.alt||[])].map(norm);
+  for(const cn of [c.cat.n,...(c.cat.alt||[])].map(norm)){
+    const ct=cn.split(' '); // metal word (one slip allowed), then the numeral exactly
+    for(let i=0;i<w.length-1;i++){
+      if(!closeTo(w[i],[ct[0]],ALL_CAT))continue;
+      if(ct.slice(1).some((x,j)=>w[i+1+j]!==x))continue;
+      const j=i+ct.length;
+      for(const k of [1,2]){const seg=w.slice(j,j+k).join(' ');if(seg&&closeTo(seg,anOK,ALL_AN))return true}
+    }
   }
   return false;
 }
@@ -1192,7 +1649,7 @@ function speakName(text){
   if(!('speechSynthesis' in window))return;
   try{
     speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text);if(voice)u.voice=voice;u.lang='en-US';u.rate=.85;
+    const u=new SpeechSynthesisUtterance(String(text).replace(/\((I|II|III|IV)\)/g,(m,r)=>' '+{I:'one',II:'two',III:'three',IV:'four'}[r]));if(voice)u.voice=voice;u.lang='en-US';u.rate=.85;
     speaking=true;micUI();
     const done=()=>setTimeout(()=>{speaking=false;if(game){game.listenAt=performance.now()+400;if(game.sub==='say'&&!game.answered)micRestart()}micUI()},300);
     u.onend=done;u.onerror=done;
@@ -1212,7 +1669,7 @@ try{
   NET.code=q||localStorage.getItem('ibond-code')||'';
 }catch(e){}
 const viaRun=()=>!!(window.google&&google.script&&google.script.run);
-NET.on=viaRun()||!!API_URL;
+NET.on=(viaRun()||!!API_URL)&&!(window.claude&&window.claude.use); // in the Claude preview the Sheet can't be reached: guest only
 function call(action,body={}){
   const req=JSON.stringify(Object.assign({action,code:NET.code,game:GAME_ID},body));
   if(viaRun())return new Promise((res,rej)=>google.script.run
@@ -1228,7 +1685,7 @@ const errText=e=>e&&e.error==='bad_code'?'This link is missing the class code. U
   e&&e.error==='busy'?'The class list is busy. Try again in a minute.':'Couldn’t reach the class list. Check the internet and try again.';
 
 // what the teacher's sheet shows for this game
-const FAM=[['Bond',['build-free','build-order']],['Pick name',['drop-pick']],['Type name',['drop-type']],['Pick formula',['drop-formula']],['Say my name',['drop-say']]];
+const FAM=[['Bond',['build-free','build-order']],['Pick name',['drop-pick']],['Type name',['drop-type']],['Pick formula',['drop-formula']],['Say my name',['drop-say']],['Charge Command',['cmd-play']]];
 function summaryOf(sv){
   const cols={};
   FAM.forEach(([label,keys])=>{let r=0,w=0;keys.forEach(k=>{const t=sv.stats[k];if(t){r+=+t.r||0;w+=+t.w||0}});cols[label]=r+w?`${r} / ${r+w} (${Math.round(r/(r+w)*100)}%)`:''});
