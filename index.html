@@ -222,6 +222,12 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 .spk{background:var(--surface);color:var(--ink);border:2px solid var(--line);border-radius:50%;width:38px;height:38px;font-size:17px;display:inline-grid;place-items:center;margin-left:12px;line-height:1;flex:none;padding:0}
 .fb .spk{width:34px;height:34px;font-size:15px;margin-left:8px;vertical-align:middle}
 .drop.tap{cursor:pointer}
+.drop .hint{font-size:20px;font-weight:800;margin-top:2px;opacity:.9}
+.drop .hint sup,.fb sup{font-size:.6em}
+.fb.balance{font-family:"Baloo 2",sans-serif;font-size:20px;color:var(--ink)}
+.fb .m{color:var(--cat)} .fb .x{color:var(--an-deep)}
+#hintBtn{display:block;margin:6px auto 0}
+.stat.xt{background:color-mix(in srgb,var(--gold) 30%,var(--surface));border-color:var(--gold)}
 /* new-ion showcase */
 .intro{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:20px;background:color-mix(in srgb,var(--paper) 50%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .intro[hidden]{display:none}
@@ -288,6 +294,13 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
       </div>
       <span class="note" style="margin:0">New polyatomic ions join as you level up.</span>
     </div>
+    <div class="settings">
+      <span style="font-weight:700">Time</span>
+      <div class="seg" role="group" aria-label="Time">
+        <button data-el="0">Standard</button><button data-el="1">Extra time</button>
+      </div>
+      <span class="note" style="margin:0">Extra time gives 60% more time and earns half points.</span>
+    </div>
 
     <h3>Mastery</h3>
     <div class="panel">
@@ -314,6 +327,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
       <div class="stat"><small>Score</small><span id="bScore">0</span></div>
       <div class="stat"><small>Level</small><span id="bLevel">1</span></div>
       <div class="stat" id="bLivesWrap"><small>Misses</small><span id="bLives"></span></div>
+      <div class="stat xt" data-xt hidden>Extra time</div>
       <div class="timer" id="bTimerWrap"><i id="bTimer"></i></div>
     </div>
     <div class="target" id="bTarget"></div>
@@ -338,6 +352,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
       <div class="stat"><small>Score</small><span id="nScore">0</span></div>
       <div class="stat"><small>Level</small><span id="nLevel">1</span></div>
       <div class="stat" id="nLivesWrap"><small>Space</small><span id="nLives"></span></div>
+      <div class="stat xt" data-xt hidden>Extra time</div>
     </div>
     <div class="well" id="well"></div>
     <div id="answers"></div>
@@ -604,6 +619,7 @@ function renderHome(){
     $('best-'+k).textContent=(p||t)?`Best ${p||0} practice, ${t||0} timed`:(k==='drop-say'?'Say it out loud. Uses your mic.':'');
   });
   document.querySelectorAll('[data-ions]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ions===save.ions));
+  document.querySelectorAll('[data-el]').forEach(b=>b.setAttribute('aria-pressed',String(+!!save.el)===b.dataset.el));
   let g='<div></div>';
   for(let a=1;a<=3;a++)g+=`<div class="hd a">${MINUS}${a}</div>`;
   for(let c=1;c<=3;c++){
@@ -640,6 +656,7 @@ function stop(){cancelAnimationFrame(raf);lastT=0;game=null;micStop();$('intro')
 function start(mode){
   stop();lastMode=mode;
   const [kind,sub,pace]=mode.split('-'),timed=pace==='timed';
+  document.querySelectorAll('[data-xt]').forEach(x=>x.hidden=!save.el);
   const st=save.stats[kind+'-'+sub]||(save.stats[kind+'-'+sub]={p:0,r:0,w:0});st.p++;persist();
   if(kind==='build')startBuild(sub,timed);else startDrop(sub,timed);
   raf=requestAnimationFrame(loop);
@@ -703,25 +720,58 @@ function startBuild(sub,timed){
   }
   renderBuild();show('build');
 }
-const spawnInterval=()=>Math.max(2200,6500-(game.level-1)*600);
-const orderTime=()=>Math.max(12000,32000-(game.level-1)*2500);
+// Extra time: everything timed runs 60% longer and points are halved
+const XT=()=>save.el?1.6:1;
+const pt=n=>save.el?Math.max(1,Math.round(n/2)):n;
+const spawnInterval=()=>Math.max(2200,6500-(game.level-1)*600)*XT();
+const orderTime=()=>Math.max(12000,32000-(game.level-1)*2500)*XT();
 function mk(ion){return {id:++game.uid,ion}}
-function newIon(){
-  const {cats,ans}=pools(game.level);
-  if(game.fresh&&game.freshLeft>0&&ans.includes(game.fresh)&&Math.random()<.35){game.freshLeft--;return mk(game.fresh)}
-  const pool=game.tray.map(t=>t.ion);
-  if(Math.random()<.5&&(game.cat.length||game.an.length)){
-    const [pos,neg]=sums();
-    if(pos>neg&&game.an.length)return mk(game.an[0]);
-    if(neg>pos&&game.cat.length)return mk(game.cat[0]);
-    if(pos>neg)return mk(rnd(ans));
-    if(neg>pos)return mk(rnd(cats));
+const trayCount=sym=>game.tray.filter(t=>t.ion.s===sym).length;
+// what the box still needs to balance, given both kinds of ion are in it
+function boxNeed(){
+  const cat=game.cat[0],an=game.an[0];
+  if(!cat||!an)return null;
+  const c=cat.c,a=-an.c,[p,q]=sums(),L=c*a/gcd(c,a);
+  let T=L;while(T<Math.max(p,q))T+=L;
+  return {cat,nc:(T-p)/c,an,na:(T-q)/a};
+}
+// the one ion the tray is missing right now, if any
+function missingIon(){
+  const need=boxNeed();
+  if(need){
+    if(trayCount(need.cat.s)<need.nc)return need.cat;
+    if(trayCount(need.an.s)<need.na)return need.an;
+    return null;
   }
+  const {cats,ans}=pools(game.level);
+  if(game.cat.length&&!game.tray.some(t=>t.ion.c<0))return rnd(ans);
+  if(game.an.length&&!game.tray.some(t=>t.ion.c>0))return rnd(cats);
+  return null;
+}
+function newIon(){
+  const must=missingIon();if(must)return mk(must);
+  const {cats,ans}=pools(game.level);
+  const pool=game.tray.map(t=>t.ion);
   const nc=pool.filter(i=>i.c>0).length,na=pool.length-nc;
   const wantCat=nc<na?Math.random()<.7:nc>na?Math.random()<.3:Math.random()<.5;
   const same=pool.filter(i=>(i.c>0)===wantCat&&(wantCat?cats:ans).includes(i));
-  if(same.length&&Math.random()<.45)return mk(rnd(same));
+  for(let k=0;k<15;k++){ // never more than 3 of the same ion waiting in the tray
+    let ion;
+    if(!wantCat&&game.fresh&&game.freshLeft>0&&ans.includes(game.fresh)&&Math.random()<.35)ion=game.fresh;
+    else if(same.length&&Math.random()<.35)ion=rnd(same);
+    else ion=rnd(wantCat?cats:ans);
+    if(trayCount(ion.s)<3){if(ion===game.fresh)game.freshLeft--;return mk(ion)}
+  }
   return mk(rnd(wantCat?cats:ans));
+}
+// right after a piece goes in, hand over anything the box can't be finished without
+function supplyNeed(){
+  if(!game||game.sub!=='free')return;
+  let n=0,ion;
+  while(n++<6&&(ion=missingIon())){
+    if(game.tray.length>=8){if(game.timed)break;game.tray.shift()}
+    game.tray.push(mk(ion));
+  }
 }
 function newOrder(){
   const {cat,an}=pickPair(game.level);
@@ -803,7 +853,7 @@ function addToZone(id){
   if(units>6){reject(isPlain(ion)?'Too much charge on that side. Try a different ion.':'Too tall. Try a different ion.');return}
   col.push(ion);game.tray.splice(idx,1);sfx.snap();setMsg('');
   const [p,q]=sums();
-  if(p&&q&&p===q)complete();else{renderBuild();if(!game.timed&&game.sub==='free')topUp()}
+  if(p&&q&&p===q)complete();else{supplyNeed();renderBuild();if(!game.timed&&game.sub==='free')topUp()}
 }
 function complete(){
   game.locked=true;renderBuild();
@@ -814,11 +864,12 @@ function complete(){
     game.streak++;
     let pts=10*units*game.level*poly+(game.streak>2?5*game.streak:0);
     if(game.sub==='order'&&game.timed)pts+=Math.round(Math.max(0,1-game.acc/orderTime())*20);
+    pts=pt(pts);
     game.score+=pts;addCoins(pts);record(cat.c,-an.c);game.made++;sfx.good();tally('build-'+game.sub,true);
     $('bFormula').innerHTML=fHTML(cat,an,a,b);
     setMsg(`${cat.n} ${an.ide}  +${pts}`,'good');$('bScore').textContent=game.score;
   }else{
-    game.streak=0;const pts=5*game.level;game.score+=pts;addCoins(pts);game.made++;sfx.snap();tally('build-'+game.sub,false,`${cat.n} ${an.ide}`);
+    game.streak=0;const pts=pt(5*game.level);game.score+=pts;addCoins(pts);game.made++;sfx.snap();tally('build-'+game.sub,false,`${cat.n} ${an.ide}`);
     const m=a/g,x=b/g;
     $('bFormula').innerHTML=fHTML(cat,an,m,x);
     setMsg(`Neutral, but use the smallest ratio: ${fText(cat,an,m,x)}  +${pts}`,'');$('bScore').textContent=game.score;
@@ -837,12 +888,8 @@ function complete(){
   },1400);
 }
 function topUp(){
+  supplyNeed();
   while(game.tray.length<6)game.tray.push(newIon());
-  const [p,q]=sums(),has=s=>game.tray.some(t=>t.ion.s===s);
-  let need=null;
-  if(p>q&&game.an.length&&!has(game.an[0].s))need=game.an[0];
-  if(q>p&&game.cat.length&&!has(game.cat[0].s))need=game.cat[0];
-  if(need){if(game.tray.length>=8)game.tray.shift();game.tray.push(mk(need))}
   renderTray();
 }
 $('clearBtn').addEventListener('click',()=>{
@@ -880,6 +927,12 @@ const STACK_MAX=4,ROW=46;
 const DUR={pick:[11000,900,4200,25000],type:[17000,1000,7000,40000],formula:[15000,1000,6000,32000],say:[16000,900,6500,45000]}; // start, step, floor, practice
 const SAY_NAME_LEVELS=2; // Say my name: levels 1-2 show the name, level 3 on shows only the formula
 const isChoice=sub=>sub==='pick'||sub==='formula';
+const HINT_LEVELS=2; // Pick the formula shows each ion's charge on levels 1-2, then on request for half points
+const ionHTML=i=>`<span class="${i.c>0?'m':'x'}">${symHTML(i.s)}<sup>${chargeText(i.c)}</sup></span>`;
+function balanceHTML(c){
+  const side=(n,i)=>`${n} ${ionHTML(i)} = ${i.c>0?'+':MINUS}${n*Math.abs(i.c)}`;
+  return `${side(c.a,c.cat)} and ${side(c.b,c.an)}, so it's ${fHTML(c.cat,c.an,c.a,c.b)}`;
+}
 function startDrop(sub,timed){
   game={kind:'drop',sub,timed,score:0,level:1,right:0,stack:[],cur:null,y:0,sayTyped:false,listenAt:0};
   $('nLivesWrap').style.display=timed?'':'none';
@@ -919,13 +972,15 @@ function nextDrop(){
   if(!game||game.kind!=='drop')return;
   const {cat,an}=pickPair(game.level);
   const [a,b]=ratio(cat,an);
-  const c={cat,an,a,b,name:`${cat.n} ${an.ide}`,showName:game.sub==='say'&&game.level<=SAY_NAME_LEVELS};
+  const c={cat,an,a,b,name:`${cat.n} ${an.ide}`,showName:game.sub==='say'&&game.level<=SAY_NAME_LEVELS,
+    hint:game.sub==='formula'&&game.level<=HINT_LEVELS};
   game.listenAt=performance.now()+350;
   if(game.sub==='pick')Object.assign(c,nameOptions(cat,an,a,b));
   if(game.sub==='formula')Object.assign(c,formulaOptions(cat,an,a,b));
   game.cur=c;game.y=8;game.answered=false;
+  if(game.sub==='say'&&!game.sayTyped&&rec){try{speechSynthesis.cancel()}catch(e){}speaking=false;micRestart()}
   const [st,step,fl,pr]=DUR[game.sub];
-  const dur=game.timed?Math.max(fl,st-(game.level-1)*step):pr;
+  const dur=(game.timed?Math.max(fl,st-(game.level-1)*step):pr)*XT();
   game.speed=Math.max(10,wellFloor()-8)/dur;
   renderDrop();
 }
@@ -939,7 +994,7 @@ function renderDrop(){
     const spk=game.sub==='say'&&!game.timed?`<button class="spk" data-say aria-label="Hear the name">🔊</button>`:'';
     const tap=spk?' tap':'';
     h+=(game.sub==='formula'||c.showName)
-      ?`<div class="drop nm${tap}" id="dropCard" style="top:${game.y}px">${c.name}${spk}</div>`
+      ?`<div class="drop nm${tap}" id="dropCard" style="top:${game.y}px"><div>${c.name}${c.hint?`<div class="hint">${ionHTML(c.cat)} and ${ionHTML(c.an)}</div>`:''}</div>${spk}</div>`
       :`<div class="drop${tap}" id="dropCard" style="top:${game.y}px">${fHTML(c.cat,c.an,c.a,c.b)}${spk}</div>`;
   }
   $('well').innerHTML=h;
@@ -961,11 +1016,13 @@ function renderDrop(){
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();checkTyped()}});
     $('typeGo').addEventListener('click',checkTyped);
   }else{
-    A.innerHTML=`<div class="answers">${c.opts.map((o,i)=>`<button class="ans ${game.sub==='formula'?'f':''}" data-i="${i}"><kbd>${i+1}</kbd><span>${o}</span></button>`).join('')}</div>`;
+    const hintBtn=game.sub==='formula'&&!c.hint?`<button class="linkbtn" id="hintBtn">Show the charges (half points)</button>`:'';
+    A.innerHTML=`<div class="answers">${c.opts.map((o,i)=>`<button class="ans ${game.sub==='formula'?'f':''}" data-i="${i}"><kbd>${i+1}</kbd><span>${o}</span></button>`).join('')}</div><div class="fb" id="fb" aria-live="polite"></div>${hintBtn}`;
+    if(hintBtn)$('hintBtn').addEventListener('click',()=>{if(game.answered)return;c.hint=true;c.usedHint=true;renderDrop()});
   }
 }
 function dropTick(dt){
-  if(!game.cur||game.answered)return;
+  if(!game.cur||game.answered||game.waitMic)return;
   game.y+=game.speed*dt;
   const el=$('dropCard');if(el)el.style.top=game.y+'px';
   if(game.y+(el?el.offsetHeight:60)>=wellFloor())miss(null,true);
@@ -985,7 +1042,7 @@ function win(){
   const c=game.cur;game.answered=true;
   const frac=Math.max(0,1-game.y/Math.max(1,wellFloor()));
   const mult={pick:1,type:2,formula:2,say:c.showName?1:2}[game.sub]*((c.cat.poly||c.an.poly)?1.5:1);
-  const pts=Math.round((10+game.level*2+frac*10)*mult);
+  const pts=pt(Math.round((10+game.level*2+frac*10)*mult*(c.usedHint?.5:1)));
   game.score+=pts;addCoins(pts);record(c.cat.c,-c.an.c);game.right++;sfx.good();tally('drop-'+game.sub,true);
   $('dropCard')?.classList.add('right');
   if(game.sub==='type'||game.sub==='say'){const f=$('fb');if(f){f.textContent=`${c.name}  +${pts}`;f.className='fb good'}}
@@ -1014,6 +1071,7 @@ function miss(i,landed,typed){
   }else{
     const ok=c.opts.indexOf(c.correct);
     document.querySelectorAll('.ans').forEach((b,j)=>{if(j===ok)b.classList.add('ok');else if(j===i)b.classList.add('no')});
+    if(game.sub==='formula'){const f=$('fb');if(f){f.className='fb bad balance';f.innerHTML=balanceHTML(c)}$('hintBtn')?.remove()}
   }
   setTimeout(()=>{
     if(!game||game.kind!=='drop')return;
@@ -1022,7 +1080,7 @@ function miss(i,landed,typed){
       if(game.stack.length>=STACK_MAX){game.cur=null;renderDrop();setTimeout(()=>endGame('The well filled up.'),500);return}
     }
     nextDrop();
-  },game.sub==='say'?3200:game.sub==='type'?2200:1600);
+  },game.sub==='say'?3200:game.sub==='type'?2200:game.sub==='formula'?3200:1600);
 }
 $('answers').addEventListener('click',e=>{const b=e.target.closest('.ans');if(b)answer(+b.dataset.i)});
 window.addEventListener('keydown',e=>{if(game&&game.kind==='drop'&&isChoice(game.sub)&&/^[1-4]$/.test(e.key))answer(+e.key-1)});
@@ -1037,7 +1095,7 @@ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec=null,recOn=false,recWant=false,speaking=false,recErrs=0;
 function micUI(){
   const m=$('micState'),t=$('micTxt');if(!m||!t)return;
-  m.classList.toggle('off',!recOn);t.textContent=speaking?'Paused while reading':recOn?'Listening':'Starting mic';
+  m.classList.toggle('off',!recOn);t.textContent=speaking?'Paused while reading':recOn?'Listening':'Starting mic (the card waits)';
 }
 function micAllowed(){
   try{const pp=document.permissionsPolicy||document.featurePolicy;return pp&&pp.allowsFeature?pp.allowsFeature('microphone'):true}catch(e){return true}
@@ -1049,7 +1107,7 @@ function micStart(){
   if(rec)return true;
   const r=new SR();rec=r;
   r.lang='en-US';r.continuous=true;r.interimResults=true;r.maxAlternatives=5;
-  r.onstart=()=>{if(rec!==r)return;recOn=true;micUI()};
+  r.onstart=()=>{if(rec!==r)return;recOn=true;if(game)game.waitMic=false;micUI()};
   r.onresult=e=>{if(rec===r){recErrs=0;onSpeech(e)}};
   r.onerror=e=>{
     if(rec!==r)return;
@@ -1063,6 +1121,14 @@ function micStart(){
   };
   try{r.start()}catch(e){rec=null;return false}
   return true;
+}
+// Chrome's long listening sessions go deaf after a while (and after the game reads a name aloud),
+// so each card gets a fresh session. The card doesn't fall until the mic is listening again.
+function micRestart(){
+  if(!rec||!recWant||!game)return;
+  const c=game.cur;game.waitMic=true;recOn=false;micUI();
+  try{rec.abort()}catch(e){} // onend starts it again
+  setTimeout(()=>{if(game&&game.cur===c&&game.waitMic){game.waitMic=false;if(rec&&!recOn){try{rec.start()}catch(e){}}}},1800);
 }
 function micStop(){recWant=false;const r=rec;rec=null;recOn=false;if(r){try{r.abort()}catch(e){}}}
 function micBlocked(why){
@@ -1128,7 +1194,7 @@ function speakName(text){
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(text);if(voice)u.voice=voice;u.lang='en-US';u.rate=.85;
     speaking=true;micUI();
-    const done=()=>setTimeout(()=>{speaking=false;if(game)game.listenAt=performance.now()+400;micUI()},300);
+    const done=()=>setTimeout(()=>{speaking=false;if(game){game.listenAt=performance.now()+400;if(game.sub==='say'&&!game.answered)micRestart()}micUI()},300);
     u.onend=done;u.onerror=done;
     speechSynthesis.speak(u);
   }catch(e){speaking=false}
@@ -1137,7 +1203,7 @@ function speakName(text){
 // ================= ACCOUNTS =================
 // The class back end is a Google Sheet with an Apps Script web app (see Code.gs).
 // Paste the web app URL below. Leave it blank and the game runs in guest mode only.
-const API_URL='https://script.google.com/a/macros/sfusd.edu/s/AKfycbyQdG9xrv-ba_5Jae5hy0ZN4oyEvXCrSL85F4MCrT52W6zLdIMHcpxmf3dKMPHoA7h1/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbyQdG9xrv-ba_5Jae5hy0ZN4oyEvXCrSL85F4MCrT52W6zLdIMHcpxmf3dKMPHoA7h1/exec';
 const GAME_ID='ibond';
 const NET={on:false,code:'',rows:null,err:''};
 try{
@@ -1167,6 +1233,7 @@ function summaryOf(sv){
   const cols={};
   FAM.forEach(([label,keys])=>{let r=0,w=0;keys.forEach(k=>{const t=sv.stats[k];if(t){r+=+t.r||0;w+=+t.w||0}});cols[label]=r+w?`${r} / ${r+w} (${Math.round(r/(r+w)*100)}%)`:''});
   cols.Stars=Object.values(sv.mastery||{}).filter(n=>n>=5).length+' / 9';
+  cols['Extra time']=sv.el?'On':'';
   cols['Most missed']=Object.entries(sv.missed||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,n])=>`${k} (${n})`).join(', ');
   return cols;
 }
@@ -1176,10 +1243,13 @@ async function flush(){
   if(!who||!dirty||!NET.on)return;
   if(flushing){await flushing;if(dirty)return flush();return}
   dirty=false;
-  const sent=save.pending||0;
-  const data=JSON.parse(JSON.stringify(save));delete data.muted;delete data.pending;delete data.coins;
-  flushing=call('save',{rid:who.rid,delta:sent,profile:{buddy:save.buddy,hat:save.hat},data,summary:summaryOf(save)}).then(r=>{
-    save.pending=Math.max(0,(save.pending||0)-sent);
+  // points go up in numbered batches; a batch that may have arrived is resent with the same id, never re-counted
+  if(!save.inflight)save.inflight={sid:Math.random().toString(36).slice(2,12),amt:save.pending||0};
+  const sent=save.inflight.amt;
+  const data=JSON.parse(JSON.stringify(save));['muted','pending','coins','inflight'].forEach(k=>delete data[k]);
+  const sid=save.inflight.sid;
+  flushing=call('save',{rid:who.rid,sid,delta:sent,profile:{buddy:save.buddy,hat:save.hat},data,summary:summaryOf(save)}).then(r=>{
+    save.pending=Math.max(0,(save.pending||0)-sent);save.inflight=null;
     save.coins=(+r.points||0)+save.pending; // the sheet keeps the running total, shared by every game in the suite
     try{localStorage.setItem(localKey(),JSON.stringify(save))}catch(e){}
     $('coinCount').textContent=save.coins;
@@ -1288,7 +1358,7 @@ function merged(r,rid){
   const remote=r.data?Object.assign(BLANK(),r.data):null;
   let sv=remote&&(remote.updated||0)>=(cached.updated||0)?remote:(cached.updated?cached:remote);
   if(!sv)return null;
-  sv.pending=cached.pending||0;
+  sv.pending=cached.pending||0;sv.inflight=cached.inflight||null;
   sv.coins=(r.profile?+r.profile.points||0:0)+sv.pending;
   if(r.profile){if(r.profile.buddy)sv.buddy=r.profile.buddy;if(r.profile.hat!=null)sv.hat=r.profile.hat}
   return sv;
@@ -1335,6 +1405,7 @@ if(NET.on){setTimeout(()=>{syncFromServer();pullBoards()},0)}
 document.querySelectorAll('[data-start]').forEach(b=>b.addEventListener('click',()=>start(b.dataset.start)));
 document.addEventListener('click',e=>{if(e.target.closest('[data-home]'))goHome()});
 document.querySelectorAll('[data-ions]').forEach(b=>b.addEventListener('click',()=>{save.ions=b.dataset.ions;persist();renderHome()}));
+document.querySelectorAll('[data-el]').forEach(b=>b.addEventListener('click',()=>{save.el=b.dataset.el==='1';persist();renderHome()}));
 $('againBtn').addEventListener('click',()=>start(lastMode));
 $('muteBtn').addEventListener('click',()=>{save.muted=!save.muted;persist();$('muteBtn').textContent=save.muted?'🔇':'🔊'});
 renderHome();
