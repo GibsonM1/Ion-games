@@ -234,7 +234,8 @@ svg .chg{font-size:13px}
 select{font:inherit;font-size:15px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:2px 6px}
 .lb{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
 .lb li{display:grid;grid-template-columns:26px 34px minmax(0,1fr) auto;align-items:center;gap:8px;padding:2px 8px;border-radius:12px}
-.lb li.me{background:color-mix(in srgb,var(--gold) 22%,transparent)}
+.lb li.me{background:color-mix(in srgb,var(--gold) 22%,transparent);outline:2px solid var(--gold)}
+.lb .nm small{margin-left:6px}
 .lb .rk{font-family:"Baloo 2",sans-serif;font-weight:800;color:var(--soft);text-align:right}
 .lb .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lb .nm small{font-weight:400;color:var(--soft);margin-left:6px}
@@ -378,6 +379,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 
     <section id="boards" hidden>
       <h3>Leaderboard</h3>
+      <div class="seg" role="group" aria-label="Which points" id="lbGame" style="margin-bottom:10px"></div>
       <div class="panel boards">
         <div><h4>All periods</h4><ol class="lb" id="lbAll"></ol></div>
         <div><h4><label for="lbPerSel">Period</label> <select id="lbPerSel"></select></h4><ol class="lb" id="lbPer"></ol></div>
@@ -472,6 +474,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
   </div>
 </div>
 
+<script src="https://gibsonm1.github.io/theme/login-v1.js"></script>
 <script>
 (() => {
 // ================= DATA =================
@@ -567,12 +570,13 @@ function ratio(cat,an){const p=cat.c,q=-an.c,g=gcd(p,q);return [q/g,p/g]}
 // ================= STORAGE =================
 // Guests save in this browser only. A logged-in student's progress is cached here
 // and synced to the class database (see ACCOUNTS).
-const KEY='ibond-v1',WHO_KEY='ibond-who';
+const KEY='ibond-v1';
+const GL=window.GibsonLogin||null;   // shared login (theme/login-v1.js); see ACCOUNTS
 const BLANK=()=>({coins:0,best:{},mastery:{},muted:false,seenHint:false,ions:'poly',buddy:'H',hat:'',stats:{},missed:{},updated:0});
 function loadLocal(k){try{const raw=localStorage.getItem(k);if(raw)return Object.assign(BLANK(),JSON.parse(raw))}catch(e){}return BLANK()}
-let who=null; // {rid,first,init,period}
-try{const w=localStorage.getItem(WHO_KEY);if(w)who=JSON.parse(w)}catch(e){}
-const localKey=()=>who?'ibond-stu-'+who.rid:KEY;
+let who=null; // {user,first,init,period}: logged in on any game on this computer = logged in here
+try{const s=GL&&GL.on()&&GL.session();if(s)who={user:s.user,first:s.first,init:s.init,period:s.period}}catch(e){}
+const localKey=()=>who?'ibond-stu-'+who.user:KEY;
 let save=loadLocal(localKey());
 let dirty=false,syncT=0;
 const persist=()=>{
@@ -1658,31 +1662,20 @@ function speakName(text){
 }
 
 // ================= ACCOUNTS =================
-// The class back end is a Google Sheet with an Apps Script web app (see Code.gs).
-// Paste the web app URL below. Leave it blank and the game runs in guest mode only.
-const API_URL='https://script.google.com/macros/s/AKfycbyQdG9xrv-ba_5Jae5hy0ZN4oyEvXCrSL85F4MCrT52W6zLdIMHcpxmf3dKMPHoA7h1/exec';
+// Shared login from theme/login-v1.js (the back end address lives there, not here).
+// Students log in with their district username + the last 5 digits of their student number.
+// If login-v1.js can't load (no internet, Claude preview), the game runs in guest mode only.
 const GAME_ID='ibond';
-const NET={on:false,code:'',rows:null,err:''};
-try{
-  const q=new URLSearchParams(location.search).get('code');
-  if(q)localStorage.setItem('ibond-code',q);
-  NET.code=q||localStorage.getItem('ibond-code')||'';
-}catch(e){}
-const viaRun=()=>!!(window.google&&google.script&&google.script.run);
-NET.on=(viaRun()||!!API_URL)&&!(window.claude&&window.claude.use); // in the Claude preview the Sheet can't be reached: guest only
-function call(action,body={}){
-  const req=JSON.stringify(Object.assign({action,code:NET.code,game:GAME_ID},body));
-  if(viaRun())return new Promise((res,rej)=>google.script.run
-    .withSuccessHandler(t=>{let r;try{r=JSON.parse(t)}catch(e){r={error:'server'}}r.error?rej(r):res(r)})
-    .withFailureHandler(()=>rej({error:'network'})).apiRun(req));
-  if(!API_URL)return Promise.reject({error:'offline'});
-  // a plain-text POST is a "simple" request, so the browser doesn't need a CORS preflight
-  return fetch(API_URL,{method:'POST',body:req}).then(r=>r.json(),()=>{throw {error:'network'}}).then(r=>{if(r.error)throw r;return r});
-}
+const GAME_NAMES={all:'All games',ibond:'iBond',bohr:'Ka-BOHR!'};   // leaderboard choices
+const NET={on:!!(GL&&GL.on()),rows:null,games:['ibond','bohr'],err:''};
+const call=(action,body={})=>GL?GL.call(action,body,GAME_ID):Promise.reject({error:'offline'});
 const nameOf=r=>`${r.first||'?'} ${r.init?r.init+'.':''}`.trim();
 const isOn=id=>$(id).classList.contains('on');
-const errText=e=>e&&e.error==='bad_code'?'This link is missing the class code. Use the game link your teacher shared.':
-  e&&e.error==='busy'?'The class list is busy. Try again in a minute.':'Couldn’t reach the class list. Check the internet and try again.';
+const errText=e=>{const k=e&&e.error;return k==='bad_login'?'That username and number don\'t match. Check both, or ask your teacher.':
+  k==='wait'?'Too many tries. Wait 10 minutes, or ask your teacher.':
+  k==='bad_code'?'This link is missing the class code. Use the game link your teacher shared.':
+  k==='busy'?'The class list is busy. Try again in a minute.':
+  k==='bad_token'?'You were logged out. Log in again to keep your ⚛.':'Couldn’t reach the class list. Check the internet and try again.'};
 
 // what the teacher's sheet shows for this game
 const FAM=[['Bond',['build-free','build-order']],['Pick name',['drop-pick']],['Type name',['drop-type']],['Pick formula',['drop-formula']],['Say my name',['drop-say']],['Charge Command',['cmd-play']]];
@@ -1702,18 +1695,23 @@ async function flush(){
   dirty=false;
   // points go up in numbered batches; a batch that may have arrived is resent with the same id, never re-counted
   if(!save.inflight)save.inflight={sid:Math.random().toString(36).slice(2,12),amt:save.pending||0};
-  const sent=save.inflight.amt;
+  const sent=save.inflight.amt, mine=localKey();
   const data=JSON.parse(JSON.stringify(save));['muted','pending','coins','inflight'].forEach(k=>delete data[k]);
   const sid=save.inflight.sid;
-  flushing=call('save',{rid:who.rid,sid,delta:sent,profile:{buddy:save.buddy,hat:save.hat},data,summary:summaryOf(save)}).then(r=>{
+  flushing=call('save',{sid,delta:sent,profile:{buddy:save.buddy,hat:save.hat},data,summary:summaryOf(save)}).then(r=>{
+    if(localKey()!==mine)return;              // logged out while this was sending
     save.pending=Math.max(0,(save.pending||0)-sent);save.inflight=null;
     save.coins=(+r.points||0)+save.pending; // the sheet keeps the running total, shared by every game in the suite
     try{localStorage.setItem(localKey(),JSON.stringify(save))}catch(e){}
     $('coinCount').textContent=save.coins;
-  }).catch(e=>{dirty=true;syncT=setTimeout(()=>flush(),20000)}).finally(()=>{flushing=null});
+  }).catch(e=>{
+    if(e&&e.error==='bad_token')return;    // login ran out: points wait on this computer until they log in again
+    dirty=true;syncT=setTimeout(()=>flush(),20000);
+  }).finally(()=>{flushing=null});
   await flushing;
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush()});
+window.addEventListener('online',()=>{if(who&&(save.pending||save.inflight)){dirty=true;flush()}});
 
 function renderWho(){
   const b=$('whoBtn');
@@ -1723,47 +1721,56 @@ function renderWho(){
   b.setAttribute('aria-label',who?`Logged in as ${nameOf(who)}`:'Playing as guest. Log in');
 }
 
-// ---- leaderboards ----
-let boardPer=null,boardT=0;
+// ---- leaderboards (logged-in students only): total ⚛ or ⚛ in one game, all periods + one period ----
+let boardPer=null,boardT=0,boardGame='all';
 async function pullBoards(){
   clearTimeout(boardT);
-  if(!NET.on)return;
-  try{const r=await call('board',{rid:who?who.rid:''});NET.rows=r.rows||[];renderBoards()}catch(e){}
+  if(!NET.on||!who){NET.rows=null;renderBoards();return}
+  try{const r=await call('board');NET.rows=r.rows||[];NET.games=r.games||NET.games;renderBoards()}catch(e){}
   boardT=setTimeout(()=>{if(isOn('home')&&document.visibilityState==='visible')pullBoards();else boardT=setTimeout(pullBoards,30000)},30000);
 }
 function boardRows(){
-  const rows=(NET.rows||[]).map(r=>({me:!!r.me,first:String(r.first||''),init:String(r.init||''),period:String(r.period??''),coins:+r.points||0,buddy:r.buddy,hat:r.hat}));
+  const val=r=>boardGame==='all'?(+r.points||0):(+(r.g&&r.g[boardGame])||0);
+  const rows=(NET.rows||[]).map(r=>({me:!!r.me,first:String(r.first||''),init:String(r.init||''),period:String(r.period??''),coins:val(r),buddy:r.buddy,hat:r.hat}));
   if(who){
-    const me={me:true,first:who.first,init:who.init,period:String(who.period),coins:save.coins,buddy:save.buddy,hat:save.hat};
-    const i=rows.findIndex(r=>r.me);if(i>=0)rows[i]=me;else rows.push(me);
+    const i=rows.findIndex(r=>r.me);
+    const me=Object.assign(i>=0?rows[i]:{me:true,first:who.first,init:who.init,period:String(who.period),coins:0},{buddy:save.buddy,hat:save.hat});
+    if(boardGame==='all')me.coins=save.coins;                    // includes points not sent yet
+    else if(boardGame===GAME_ID)me.coins+=(save.pending||0);
+    if(i>=0)rows[i]=me;else rows.push(me);
   }
-  return rows.sort((a,b)=>b.coins-a.coins||a.first.localeCompare(b.first));
+  return rows.filter(r=>r.coins>0||r.me).sort((a,b)=>b.coins-a.coins||a.first.localeCompare(b.first));
 }
 function lbHTML(rows,showPer){
-  if(!rows.length)return `<li class="empty">No scores yet. Log in and play to get on the board.</li>`;
-  const li=(r,i)=>`<li class="${r.me?'me':''}"><span class="rk">${i+1}</span>${sprite(r.buddy,r.hat,30)}<span class="nm">${esc(nameOf(r))}${showPer?`<small>P${esc(r.period)}</small>`:''}</span><span class="pts">${r.coins.toLocaleString()}</span></li>`;
+  if(!rows.length)return `<li class="empty">No scores yet. Play to get on the board.</li>`;
+  let rank=0,prev=null;rows.forEach((r,i)=>{if(r.coins!==prev){rank=i+1;prev=r.coins}r.rk=rank});
+  const li=r=>`<li class="${r.me?'me':''}"><span class="rk">${r.rk}</span>${sprite(r.buddy,r.hat,30)}<span class="nm">${esc(nameOf(r))}${r.me?'<small>(you)</small>':''}${showPer?`<small>P${esc(r.period)}</small>`:''}</span><span class="pts">${r.coins.toLocaleString()}</span></li>`;
   let h=rows.slice(0,10).map(li).join('');
   const mi=rows.findIndex(r=>r.me);
-  if(mi>=10)h+=`<li class="gap" aria-hidden="true">⋮</li>`+li(rows[mi],mi);
+  if(mi>=10)h+=`<li class="gap" aria-hidden="true">⋮</li>`+li(rows[mi]);
   return h;
 }
 function renderBoards(){
   const sec=$('boards');
-  if(!NET.rows){sec.hidden=true;return}
+  if(!NET.rows||!who){sec.hidden=true;return}
   sec.hidden=false;
+  const games=['all'].concat(NET.games.filter(g=>GAME_NAMES[g]));
+  if(!games.includes(boardGame))boardGame='all';
+  $('lbGame').innerHTML=games.map(g=>`<button data-g="${g}" aria-pressed="${g===boardGame}">${esc(GAME_NAMES[g])}</button>`).join('');
   const rows=boardRows();
-  const pers=[...new Set(rows.map(r=>r.period))].filter(Boolean).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
-  if(boardPer==null||!pers.includes(boardPer))boardPer=who?String(who.period):(pers[0]||'');
+  const pers=[...new Set((NET.rows||[]).map(r=>String(r.period??'')).concat(String(who.period)))].filter(Boolean).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  if(boardPer==null||!pers.includes(boardPer))boardPer=String(who.period);
   $('lbAll').innerHTML=lbHTML(rows,true);
   $('lbPerSel').innerHTML=pers.map(p=>`<option value="${esc(p)}"${p===boardPer?' selected':''}>${esc(p)}</option>`).join('');
   $('lbPerSel').disabled=!pers.length;
   $('lbPer').innerHTML=lbHTML(rows.filter(r=>r.period===boardPer),false);
 }
 $('lbPerSel').addEventListener('change',e=>{boardPer=e.target.value;renderBoards()});
+$('lbGame').addEventListener('click',e=>{const b=e.target.closest('button');if(b){boardGame=b.dataset.g;renderBoards()}});
 
 // ---- login ----
-let login={step:'id',err:'',matches:[],pick:null};
-function openLogin(){stop();login={step:who?'me':'id',err:'',matches:[],pick:null};renderLogin();show('login')}
+let login={step:'form',err:'',user:'',id:'',pick:null};
+function openLogin(){stop();login={step:who?'me':'form',err:'',user:'',id:'',pick:null};renderLogin();show('login')}
 function renderLogin(){
   const L=$('loginBody'),st=login;
   if(st.step==='me'){
@@ -1771,21 +1778,25 @@ function renderLogin(){
       `<div class="row"><button class="btn alt" id="lgOut">Log out</button><button class="btn" data-home>Back to games</button></div>`;
     $('lgOut').addEventListener('click',logout);return;
   }
-  if(st.step==='id'){
-    L.innerHTML=`<h2>Log in</h2><label for="lgId">Last 5 digits of your student ID</label>`+
-      `<div class="typebox"><input id="lgId" inputmode="numeric" autocomplete="off" maxlength="5" placeholder="12345"><button class="btn" id="lgNext">Next</button></div>`+
-      `<p class="fb bad" aria-live="polite">${esc(st.err)}</p><p class="note">Playing as a guest saves your progress on this computer only.</p>`;
-    const i=$('lgId');i.focus();
-    i.addEventListener('input',()=>{i.value=i.value.replace(/\D/g,'').slice(0,5)});
-    i.addEventListener('keydown',e=>{if(e.key==='Enter')lookup()});
-    $('lgNext').addEventListener('click',lookup);return;
-  }
-  if(st.step==='confirm'){
-    L.innerHTML=`<h2>Is this you?</h2><div class="pick">`+st.matches.map((m,i)=>`<button class="btn alt" data-m="${i}">${esc(nameOf(m))}<small>Period ${esc(m.period)}</small></button>`).join('')+
-      `</div><button class="linkbtn" id="lgBack">That's not me</button><p class="fb bad" aria-live="polite">${esc(st.err)}</p>`;
-    L.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>chooseMatch(st.matches[+b.dataset.m])));
-    $('lgBack').addEventListener('click',()=>{login={step:'id',err:'Check your number and try again. If it still isn\'t you, tell your teacher.',matches:[]};renderLogin()});
-    return;
+  if(st.step==='form'){
+    L.innerHTML=`<h2>Log in</h2>`+
+      `<label for="lgUser">School username</label>`+
+      `<div class="typebox" style="margin-top:6px"><input id="lgUser" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="64" aria-describedby="lgHint"></div>`+
+      `<p class="note" id="lgHint" style="margin:4px 0 12px">The first part of your school email, before the @</p>`+
+      `<label for="lgId">Last 5 digits of your student number</label>`+
+      `<div class="typebox" style="margin-top:6px"><input id="lgId" type="${st.show?'text':'password'}" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="5" placeholder="•••••">`+
+      `<button class="btn alt" id="lgShow" aria-pressed="${!!st.show}" style="flex:none">${st.show?'Hide':'Show'}</button></div>`+
+      `<p class="fb bad" id="lgErr" aria-live="polite">${esc(st.err)}</p>`+
+      `<div class="row"><button class="btn alt" data-home>Cancel</button><button class="btn" id="lgGo">Log in</button></div>`+
+      `<p class="note">Playing as a guest saves your progress on this computer only.</p>`;
+    const iu=$('lgUser'),ii=$('lgId');
+    iu.value=st.user;ii.value=st.id;(st.user?ii:iu).focus();
+    iu.addEventListener('input',()=>{st.user=iu.value});
+    ii.addEventListener('input',()=>{ii.value=ii.value.replace(/\D/g,'').slice(0,5);st.id=ii.value});
+    iu.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ii.focus()}});
+    ii.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doLogin()}});
+    $('lgShow').addEventListener('click',()=>{st.show=!st.show;renderLogin();$('lgId').focus()});
+    $('lgGo').addEventListener('click',doLogin);return;
   }
   if(st.step==='carry'){
     L.innerHTML=`<h2>Welcome, ${esc(st.pick.first)}!</h2><p>You have ${save.coins.toLocaleString()} ⚛ as a guest on this computer. Bring them into your account?</p>`+
@@ -1798,20 +1809,10 @@ function renderLogin(){
     $('lgFresh').addEventListener('click',()=>finishLogin(st.pick,BLANK()));
   }
 }
-async function lookup(){
-  const v=$('lgId').value;
-  if(!/^\d{5}$/.test(v)){login.err='Enter all 5 digits.';renderLogin();return}
-  $('lgNext').disabled=true;
-  try{
-    const r=await call('lookup',{last5:v});
-    const m=(r.matches||[]).filter(x=>x.rid&&x.first);
-    if(!m.length){login.err='No match for that number. Check it, or ask your teacher.';renderLogin();return}
-    login={step:'confirm',err:'',matches:m};renderLogin();
-  }catch(e){login.err=errText(e);renderLogin()}
-}
+const lgErr=m=>{login.err=m;const p=$('lgErr');if(p)p.textContent=m};
 // combine what the sheet has with anything this computer saved but hadn't sent yet
-function merged(r,rid){
-  const cached=loadLocal('ibond-stu-'+rid);
+function merged(r,user){
+  const cached=loadLocal('ibond-stu-'+user);
   const remote=r.data?Object.assign(BLANK(),r.data):null;
   let sv=remote&&(remote.updated||0)>=(cached.updated||0)?remote:(cached.updated?cached:remote);
   if(!sv)return null;
@@ -1820,10 +1821,18 @@ function merged(r,rid){
   if(r.profile){if(r.profile.buddy)sv.buddy=r.profile.buddy;if(r.profile.hat!=null)sv.hat=r.profile.hat}
   return sv;
 }
-async function chooseMatch(m){
+let loggingIn=false;
+async function doLogin(){
+  const user=GL.normUser(login.user),id=login.id;
+  if(!user){lgErr('Type your school username.');$('lgUser').focus();return}
+  if(!/^\d{5}$/.test(id)){lgErr('Enter all 5 digits.');$('lgId').focus();return}
+  $('lgGo').disabled=true;lgErr('Checking…');
   let r;
-  try{r=await call('login',{rid:m.rid})}catch(e){login.err=errText(e);renderLogin();return}
-  const sv=merged(r,m.rid);
+  loggingIn=true;
+  try{r=await GL.login(user,id,GAME_ID)}catch(e){loggingIn=false;$('lgGo').disabled=false;lgErr(errText(e));return}
+  loggingIn=false;
+  const s=GL.session(), m={user:s.user,first:s.first,init:s.init,period:s.period};
+  const sv=merged(r,m.user);
   if(sv||(r.profile&&+r.profile.points)){
     const s2=sv||Object.assign(BLANK(),{coins:+r.profile.points||0,buddy:r.profile.buddy||'H',hat:r.profile.hat||''});
     finishLogin(m,s2);return;
@@ -1833,28 +1842,43 @@ async function chooseMatch(m){
 }
 function finishLogin(m,data){
   const muted=save.muted;
-  who={rid:m.rid,first:String(m.first),init:String(m.init||''),period:String(m.period)};
-  try{localStorage.setItem(WHO_KEY,JSON.stringify(who))}catch(e){}
+  who={user:m.user,first:String(m.first),init:String(m.init||''),period:String(m.period)};
   boardPer=null;
   save=data;save.muted=muted;persist();dirty=true;flush();
   renderHome();show('home');pullBoards();toast(`Welcome, ${esc(who.first)}!`);
 }
 async function logout(){
   await flush();
-  who=null;try{localStorage.removeItem(WHO_KEY)}catch(e){}
+  who=null;GL.logout();
   boardPer=null;
   save=loadLocal(KEY);renderHome();show('home');pullBoards();toast('Logged out. Playing as guest.');
 }
 async function syncFromServer(){
   if(!who||!NET.on)return;
+  const me=who.user;
   try{
-    const r=await call('login',{rid:who.rid});
-    const sv=merged(r,who.rid);
+    const r=await call('load');
+    if(!who||who.user!==me)return;
+    const sv=merged(r,me);
     if(sv){const muted=save.muted;save=sv;save.muted=muted;try{localStorage.setItem(localKey(),JSON.stringify(save))}catch(e){}}
     if(isOn('home'))renderHome();else $('coinCount').textContent=save.coins;
-    if(save.pending){dirty=true;flush()}
+    if(save.pending||save.inflight){dirty=true;flush()}
   }catch(e){}
 }
+// logged in or out in another tab or game, or the login ran out
+window.addEventListener('gibson-session',e=>{
+  if(loggingIn)return;
+  const s=e.detail,nw=s?{user:s.user,first:s.first,init:s.init,period:s.period}:null;
+  if((nw&&nw.user)===(who&&who.user))return;
+  const lost=!!who&&!nw;
+  try{localStorage.setItem(localKey(),JSON.stringify(save))}catch(_e){}
+  const muted=save.muted;
+  who=nw;save=loadLocal(localKey());save.muted=muted;boardPer=null;
+  if(isOn('login'))show('home');
+  renderHome();pullBoards();
+  if(lost)toast('You were logged out. Log in again to keep your ⚛.');
+  if(who)syncFromServer();
+});
 $('whoBtn').addEventListener('click',openLogin);
 if(NET.on){setTimeout(()=>{syncFromServer();pullBoards()},0)}
 
@@ -1866,6 +1890,7 @@ document.querySelectorAll('[data-el]').forEach(b=>b.addEventListener('click',()=
 $('againBtn').addEventListener('click',()=>start(lastMode));
 $('muteBtn').addEventListener('click',()=>{save.muted=!save.muted;persist();$('muteBtn').textContent=save.muted?'🔇':'🔊'});
 renderHome();
+window.__ibond={addCoins,flush,getSave:()=>save,getWho:()=>who};
 })();
 </script>
 </body>
