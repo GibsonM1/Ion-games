@@ -355,6 +355,17 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
             <button class="btn alt" data-start="cmd-play-practice">Practice</button><button class="btn" data-start="cmd-play-timed">Battle</button></div>
         </div>
       </div>
+      <div class="game">
+        <div class="art" aria-hidden="true">
+          <div class="drop" style="position:static;transform:none;font-size:30px"><span class="m">Al<sub>2</sub></span><span class="x">(SO<sub>4</sub>)<sub>3</sub></span></div>
+        </div>
+        <h2>Ionagrams</h2>
+        <p>Race your classmates to use every ion. Then check each other's work.</p>
+        <div>
+          <div class="mode"><div class="lbl">With classmates or alone</div>
+            <a class="btn" href="ionagrams/" style="text-align:center;text-decoration:none;flex:none">Play</a></div>
+        </div>
+      </div>
     </div>
     <div class="settings">
       <span style="font-weight:700">Ions</span>
@@ -1666,7 +1677,7 @@ function speakName(text){
 // Students log in with their district username + the last 5 digits of their student number.
 // If login-v1.js can't load (no internet, Claude preview), the game runs in guest mode only.
 const GAME_ID='ibond';
-const GAME_NAMES={all:'All games',ibond:'iBond',bohr:'Ka-BOHR!'};   // leaderboard choices
+const GAME_NAMES={all:'All games',ibond:'iBond',bohr:'Ka-BOHR!',ionagrams:'Ionagrams'};   // leaderboard choices
 const NET={on:!!(GL&&GL.on()),rows:null,games:['ibond','bohr'],err:''};
 const call=(action,body={})=>GL?GL.call(action,body,GAME_ID):Promise.reject({error:'offline'});
 const nameOf=r=>`${r.first||'?'} ${r.init?r.init+'.':''}`.trim();
