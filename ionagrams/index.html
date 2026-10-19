@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ionagrams</title>
+<meta name="description" content="Ionagrams: race your classmates to build ionic compounds from ion tiles.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E4F6EE; --grid:#CBEBDD; --ink:#17323A; --soft:#4F6C72;
+  --surface:#FFFFFF; --line:#B9DCCD;
+  --cat:#E85A4F; --cat-deep:#A9362D; --an:#2BB3CF; --an-deep:#167A90; --tile:#6F8389; --tile-deep:#475A60;
+  --gold:#F2B630; --good:#2E7D4F; --bad:#B8392A;
+  --catx:#B23A30; --anx:#146E82;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F2229; --grid:#16313A; --ink:#E3F4EE; --soft:#9DBAB5;
+    --surface:#16303A; --line:#24505C;
+    --cat:#F0675C; --cat-deep:#7E241D; --an:#36C2DD; --an-deep:#0F5A6B;
+    --good:#4CC67F; --bad:#F27D6D; --catx:#FF8A80; --anx:#5FD3EA;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F2229; --grid:#16313A; --ink:#E3F4EE; --soft:#9DBAB5;
+  --surface:#16303A; --line:#24505C;
+  --cat:#F0675C; --cat-deep:#7E241D; --an:#36C2DD; --an-deep:#0F5A6B;
+  --good:#4CC67F; --bad:#F27D6D; --catx:#FF8A80; --anx:#5FD3EA;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{
+  margin:0;min-height:100%;color:var(--ink);
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.45;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  -webkit-tap-highlight-color:transparent;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:default}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+sub{font-size:.62em;line-height:0}
+sup{font-size:.6em;line-height:0}
+.m{color:var(--catx)} .x{color:var(--anx)}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:6px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px));
+  background:color-mix(in srgb,var(--paper) 88%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-bottom:2px solid var(--line)}
+.logo{font-family:"Baloo 2","Trebuchet MS",sans-serif;font-weight:800;font-size:27px;letter-spacing:-.5px;line-height:1;margin:0;white-space:nowrap}
+.logo .i{color:var(--catx)} .logo .b{color:var(--anx)}
+.spacer{flex:1;min-width:0}
+.coins{display:flex;align-items:center;gap:5px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 4px;white-space:nowrap}
+.coin{width:24px;height:24px;border-radius:50%;background:var(--gold);display:grid;place-items:center;font-size:13px;font-weight:800;color:#5A3D00;flex:none}
+.iconbtn{background:var(--surface);border:2px solid var(--line);border-radius:12px;width:48px;height:48px;display:grid;place-items:center;font-size:20px;font-weight:700;padding:0;flex:none}
+.iconbtn{position:relative}
+.iconbtn.off{opacity:.6}
+.iconbtn.off::after{content:"";position:absolute;left:9px;right:9px;top:50%;height:3px;border-radius:2px;background:var(--ink);transform:rotate(-40deg)}
+@media (max-width:400px){.top{gap:4px;padding-left:10px;padding-right:10px}.logo{font-size:24px}.iconbtn{width:46px}}
+
+.wrap{max-width:1280px;margin:0 auto;padding:14px 16px 40px}
+.screen{display:none}.screen.on{display:block}
+h2,h3{font-family:"Baloo 2","Trebuchet MS",sans-serif;line-height:1.15;margin:0}
+h2{font-size:28px} h3{font-size:21px}
+.lead{font-size:18px;margin:6px 0 14px}
+.note{font-size:15px;color:var(--soft);margin:6px 0 0}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:16px}
+.stack>*+*{margin-top:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:none;border-radius:14px;min-height:48px;padding:10px 18px;font-weight:700;font-size:17px;background:var(--ink);color:var(--paper);display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.btn.big{font-size:20px;min-height:58px;padding:12px 22px;font-family:"Baloo 2",sans-serif;font-weight:800}
+.btn.go{background:var(--good);color:#fff}
+.btn:disabled{opacity:.4}
+.btn.wide{width:100%}
+.linkbtn{background:none;border:none;color:var(--ink);text-decoration:underline;text-underline-offset:3px;padding:10px 4px;font-weight:700;font-size:16px;min-height:48px}
+.seg{display:inline-flex;flex-wrap:wrap;border:2px solid var(--ink);border-radius:14px;overflow:hidden}
+.seg button{border:none;background:transparent;min-height:46px;padding:6px 14px;font-weight:700;font-size:16px}
+.seg button+button{border-left:2px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:disabled{opacity:.4;text-decoration:line-through}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{min-width:48px;min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-weight:800;font-size:18px}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.opt{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.opt:first-child{border-top:none}
+.opt .lbl{flex:1;font-weight:700;line-height:1.25}
+.opt .lbl small{display:block;font-weight:400;font-size:14px;color:var(--soft)}
+.switch{flex:none;width:66px;height:40px;border-radius:999px;border:2px solid var(--ink);background:var(--surface);position:relative;padding:0;margin:4px 0}
+.switch::after{content:"";position:absolute;top:4px;left:4px;width:28px;height:28px;border-radius:50%;background:var(--soft);transition:left .15s}
+.switch[aria-checked="true"]{background:var(--good);border-color:var(--good)}
+.switch[aria-checked="true"]::after{left:30px;background:#fff}
+.switch .sr{position:absolute}
+
+/* start */
+.hero{display:grid;gap:14px;grid-template-columns:1fr}
+@media (min-width:860px){.hero{grid-template-columns:1.2fr 1fr;align-items:start}}
+.demo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:4px 0 10px}
+.demo .arrow{font-weight:800;font-size:22px;color:var(--soft)}
+.demo .f{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:28px}
+@media (max-width:480px){.demo{gap:5px}.demo .tile{min-width:0;min-height:42px;font-size:19px;padding:3px 8px 2px 12px}.demo .f{font-size:24px}.lead{font-size:17px}}
+.who{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.who .nm{font-weight:700}
+.who .nm small{display:block;font-weight:400;color:var(--soft);font-size:14px}
+.playbtns{display:grid;gap:10px;grid-template-columns:1fr}
+.prac{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.teach{border-color:var(--gold)}
+.teach fieldset{border:none;padding:0;margin:10px 0 0}
+.teach legend{font-weight:700;margin-bottom:6px;padding:0}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:700}
+.chk input{width:24px;height:24px;accent-color:var(--ink)}
+.version{font-size:13px;color:var(--soft);text-align:center;margin-top:24px}
+
+/* lobby */
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.bar h2{flex:1;min-width:160px}
+.rooms{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.room{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:120px}
+.room:not(:disabled):hover{border-color:var(--ink)}
+.room .rt{display:flex;align-items:center;gap:8px}
+.room .rt b{font-family:"Baloo 2",sans-serif;font-size:22px;flex:1;line-height:1.1}
+.room .sp{display:flex;gap:2px;min-height:40px;align-items:flex-end;flex-wrap:wrap}
+.room .meta{display:flex;justify-content:space-between;color:var(--soft);font-size:15px;font-weight:700}
+.tag{display:inline-block;border-radius:999px;padding:1px 10px;font-size:14px;font-weight:700;border:2px solid var(--line);background:var(--paper);white-space:nowrap}
+.tag.play{border-color:var(--bad);color:var(--bad)}
+.tag.go{border-color:var(--good);color:var(--good)}
+.empty{color:var(--soft);padding:20px;text-align:center;border:2px dashed var(--line);border-radius:18px}
+
+/* waiting */
+.waitgrid{display:grid;gap:14px;grid-template-columns:1fr}
+@media (min-width:860px){.waitgrid{grid-template-columns:1fr 1fr}}
+.plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.plist li{display:flex;align-items:center;gap:10px;padding:4px 8px;border-radius:14px;min-height:52px}
+.plist li.me{background:color-mix(in srgb,var(--gold) 18%,transparent)}
+.plist .nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rdy{font-weight:700;font-size:15px;color:var(--soft);white-space:nowrap}
+.rdy.on{color:var(--good)}
+.cd{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0}
+.ring{width:110px;height:110px;position:relative;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:44px}
+.readybtn{width:100%;font-size:24px;min-height:70px}
+.readybtn[aria-pressed="true"]{background:var(--good);color:#fff}
+
+/* play */
+.hud{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.stat{background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:4px 12px;font-weight:700;min-height:40px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.stat small{font-weight:400;color:var(--soft)}
+.stat.low{border-color:var(--bad);color:var(--bad)}
+.stat.xt{background:color-mix(in srgb,var(--gold) 25%,var(--surface));border-color:var(--gold)}
+.opps{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;margin-bottom:6px;scrollbar-width:thin}
+.opp{flex:none;display:flex;align-items:center;gap:6px;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:2px 10px 2px 4px;min-height:48px}
+.opp .nm{font-weight:700;font-size:15px;line-height:1.1;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opp .lf{font-size:14px;color:var(--soft);display:block;font-weight:400}
+.opp.out{opacity:.75;border-style:dashed}
+.badge{font-size:13px;font-weight:800;border-radius:999px;padding:0 8px;background:var(--bad);color:#fff;white-space:nowrap}
+.badge.gone{background:var(--soft)}
+.playgrid{display:grid;gap:12px;grid-template-columns:1fr}
+@media (min-width:900px){.playgrid{grid-template-columns:minmax(0,1fr) 380px;align-items:start}}
+.groups{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.grp{background:var(--surface);border:3px solid var(--line);border-radius:18px;padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px;min-height:120px;position:relative}
+.grp.drop{border-style:dashed;border-color:var(--gold);cursor:pointer}
+.grp.hot,.newg.hot,.trayzone.hot,.swap.hot{border-color:var(--gold)!important;border-style:solid!important;background:color-mix(in srgb,var(--gold) 14%,var(--surface))}
+.grp.locked{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 6%,var(--surface))}
+.grp .gh{display:flex;align-items:center;gap:8px;min-height:44px}
+.grp .fm{flex:1;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:28px;line-height:1.1;min-width:0;overflow-wrap:anywhere}
+.grp .tiles{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;min-height:52px}
+.grp .claims{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-weight:700}
+.grp .claims .nmc{font-style:italic;font-weight:700}
+.grp .lockbtn{min-height:44px;padding:6px 14px}
+.addhere{border:2px dashed var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent);border-radius:12px;min-height:44px;padding:4px 12px;font-weight:700;font-size:15px}
+.newg{border:3px dashed var(--line);background:transparent;border-radius:18px;min-height:120px;font-weight:700;font-size:18px;color:var(--soft);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.newg b{font-size:30px;line-height:1}
+.newg.drop{border-color:var(--gold);color:var(--ink)}
+.side{position:sticky;bottom:0;z-index:5}
+@media (min-width:900px){.side{top:78px;bottom:auto}}
+.trayzone{background:color-mix(in srgb,var(--surface) 94%,transparent);border:3px solid var(--line);border-radius:20px 20px 0 0;padding:8px 10px 10px;box-shadow:0 -6px 18px rgba(0,0,0,.08);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+@media (min-width:900px){.trayzone{border-radius:20px;box-shadow:none}}
+.trayzone .th{display:flex;align-items:center;gap:8px;margin-bottom:6px;min-height:28px}
+.trayzone .th b{font-family:"Baloo 2",sans-serif;font-size:19px}
+.trayzone .hint{flex:1;font-size:14px;color:var(--soft);line-height:1.2;text-align:right}
+.tray{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;max-height:31vh;overflow-y:auto;min-height:56px;padding:3px}
+@media (min-width:900px){.tray{max-height:none}}
+.tray .emptyt{color:var(--soft);font-size:15px;padding:12px 4px}
+.tfoot{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.swap{border:3px dashed var(--soft);background:transparent;border-radius:14px;min-height:56px;font-weight:700;line-height:1.1;padding:4px 8px;display:flex;align-items:center;justify-content:center;gap:6px}
+.swap small{display:block;font-weight:400;font-size:13px;color:var(--soft)}
+.swap.drop{border-color:var(--gold)}
+.donebtn{min-height:56px;font-size:22px}
+.donebtn:not(:disabled){background:var(--good);color:#fff}
+.frozen .tile,.frozen .grp{pointer-events:none}
+.banner{border-radius:16px;padding:10px 14px;font-weight:700;margin-bottom:10px;border:2px solid var(--ink);background:var(--surface)}
+.banner.bad{border-color:var(--bad)}
+
+/* tiles */
+.tile{position:relative;border:2px solid transparent;border-radius:10px;min-width:56px;min-height:52px;padding:4px 10px 2px 14px;color:#fff;font-family:"Baloo 2","Trebuchet MS",sans-serif;font-weight:800;font-size:23px;line-height:1;display:inline-flex;align-items:center;justify-content:center;touch-action:none;user-select:none;-webkit-user-select:none;transition:transform .1s}
+.tile.c{background:var(--cat-deep);border-color:var(--cat)}
+.tile.a{background:var(--an-deep);border-color:var(--an);border-radius:22px}
+.tile sub{font-size:.6em} .tile sup{font-size:.62em;margin-left:1px}
+.tile .sg{position:absolute;top:2px;left:4px;font-family:"Atkinson Hyperlegible",sans-serif;font-size:13px;font-weight:700;line-height:1;opacity:.95}
+.tile.a .sg{left:7px}
+.tile:hover{transform:translateY(-2px)}
+.tile[aria-pressed="true"]{outline:4px solid var(--gold);outline-offset:2px;transform:translateY(-3px);box-shadow:0 6px 12px rgba(0,0,0,.25)}
+.tile.new,.piece.new{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+.grp.locked .tile{opacity:.92}
+.piece{background:none;border:none;padding:0;line-height:0;min-height:48px;min-width:48px;display:inline-flex;align-items:center;touch-action:none;border-radius:10px;user-select:none;-webkit-user-select:none}
+.piece[aria-pressed="true"]{outline:4px solid var(--gold);outline-offset:1px}
+.piece svg .sym{font-family:"Baloo 2","Trebuchet MS",sans-serif;font-weight:800;font-size:19px;fill:#fff}
+.piece svg .chg{font-size:13px}
+.pcols{display:flex;align-items:flex-start}
+.pcol{display:flex;flex-direction:column}
+.pcol .piece{min-height:0}
+.pcol .piece+.piece{margin-top:-4px}
+.pcol.an{margin-left:-16px}
+.ghost{position:fixed;pointer-events:none;z-index:80;opacity:.9;transform:translate(-50%,-50%) scale(1.08);filter:drop-shadow(0 6px 8px rgba(0,0,0,.3))}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+
+/* countdown overlay */
+.cover{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 70%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.cover .n{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:140px;line-height:1;text-align:center}
+.cover .n small{display:block;font-size:22px;color:var(--soft)}
+
+/* check (challenge + reveal) */
+.chk-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.chk-h h2{flex:1;min-width:200px}
+.tbar{height:14px;border-radius:999px;background:var(--surface);border:2px solid var(--line);overflow:hidden;margin:6px 0 12px}
+.tbar i{display:block;height:100%;background:var(--gold);width:100%;transition:width .25s linear}
+.cgroups{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.cg{background:var(--surface);border:3px solid var(--line);border-radius:18px;padding:12px;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:120px;width:100%}
+.cg .fm{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:34px;line-height:1.1;overflow-wrap:anywhere}
+.cg .cl{font-weight:700;font-size:18px;display:flex;flex-wrap:wrap;gap:2px 12px}
+.cg .cl .nmc{font-style:italic}
+.cg .fl{margin-top:auto;font-weight:800;display:flex;align-items:center;gap:6px;color:var(--soft)}
+button.cg[aria-pressed="true"]{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--surface))}
+button.cg[aria-pressed="true"] .fl{color:var(--bad)}
+.cg.ok{border-color:var(--good)} .cg.no{border-color:var(--bad)}
+.verd{font-weight:800;font-size:20px;display:flex;align-items:center;gap:6px}
+.verd.ok{color:var(--good)} .verd.no{color:var(--bad)}
+.why{margin:0;padding-left:20px;font-size:16px}
+.why li+li{margin-top:2px}
+.flaggers{font-size:14px;color:var(--soft);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pts{font-weight:800;border-radius:999px;padding:0 8px;font-size:15px}
+.pts.p{background:var(--good);color:#fff} .pts.n{background:var(--bad);color:#fff}
+
+/* review + results */
+@media (min-width:900px){.revgrid .revg{order:1}.revgrid .revcard{order:2}}
+@media (max-width:899px){.revgrid .revcard{order:-1}}
+.score{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:56px;line-height:1;display:flex;align-items:center;gap:10px}
+.lines{list-style:none;margin:8px 0 0;padding:0}
+.lines li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-weight:700}
+.lines li span:last-child{font-variant-numeric:tabular-nums}
+.res{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.res li{display:grid;grid-template-columns:28px 40px minmax(0,1fr) auto;align-items:center;gap:8px;padding:4px 10px;border-radius:14px;min-height:56px;background:var(--surface);border:2px solid var(--line)}
+.res li.win{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--surface))}
+.res li.me{outline:3px solid var(--ink);outline-offset:-1px}
+.res .rk{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:22px;text-align:center}
+.res .nm{font-weight:700;overflow-wrap:anywhere;line-height:1.2}
+.res .nm small{display:block;font-weight:400;color:var(--soft);font-size:14px}
+.res .pt{font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+
+/* dialogs */
+dialog{border:3px solid var(--ink);border-radius:22px;padding:0;background:var(--surface);color:var(--ink);width:min(520px,calc(100vw - 20px));max-height:calc(100dvh - 20px);box-shadow:0 18px 44px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(10,30,36,.45)}
+.dlg{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px}
+.dh{display:flex;align-items:center;gap:10px}
+.dh h2{flex:1;font-size:26px}
+.xbtn{width:48px;height:48px;border-radius:12px;border:2px solid var(--line);background:transparent;font-size:22px;font-weight:700;flex:none}
+.bigf{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:40px;line-height:1.1;text-align:center;overflow-wrap:anywhere}
+.step{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.step .lbl{flex:1;min-width:130px;font-weight:700}
+.step .lbl small{display:block;font-weight:400;color:var(--soft);font-size:15px;font-family:"Baloo 2",sans-serif;font-size:19px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:52px;height:52px;border-radius:14px;border:2px solid var(--ink);background:var(--surface);font-size:26px;font-weight:800;line-height:1;padding:0}
+.stepper .num{display:flex;align-items:center;border:2px solid var(--line);border-radius:14px;height:52px;padding:0 6px;font-family:"Baloo 2",sans-serif;font-weight:800;font-size:28px}
+.stepper .num.p{color:var(--catx)} .stepper .num.n{color:var(--anx)}
+.stepper input{width:2.2ch;border:none;background:transparent;font:inherit;color:inherit;text-align:center;padding:0;-moz-appearance:textfield}
+.stepper input::-webkit-inner-spin-button{-webkit-appearance:none}
+.mathrow{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:21px;color:var(--ink);background:var(--paper);border-radius:12px;padding:2px 10px;margin-top:4px}
+.choices{display:flex;flex-direction:column;gap:8px;border:none;margin:0;padding:0}
+.choices legend{font-weight:700;margin-bottom:6px;padding:0}
+.choice{display:flex;align-items:center;gap:12px;border:2px solid var(--line);border-radius:14px;padding:8px 12px;min-height:52px;font-weight:700;font-size:18px;cursor:pointer}
+.choice input{width:24px;height:24px;accent-color:var(--ink);flex:none}
+.choice:has(input:checked){border-color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,var(--surface))}
+.words{display:flex;flex-wrap:wrap;gap:8px}
+.word{min-height:48px;padding:6px 14px;border-radius:12px;border:2px solid var(--ink);background:var(--surface);font-weight:700;font-size:18px}
+.word.used{opacity:.3}
+.ansline{min-height:56px;border:2px dashed var(--line);border-radius:14px;padding:4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ansline .word{background:var(--ink);color:var(--paper)}
+.ansline .ph{color:var(--soft);padding:0 8px;font-size:15px}
+.preview{font-weight:700;font-size:18px;min-height:1.4em}
+.dfoot{display:flex;gap:10px}
+.dfoot .btn{flex:1}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-weight:700}
+.field input{font-size:20px;padding:10px 14px;border-radius:14px;border:2px solid var(--line);background:var(--paper);color:var(--ink);min-height:52px;width:100%}
+.err{color:var(--bad);font-weight:700;min-height:1.4em;margin:0}
+.help ol{margin:0;padding-left:22px}
+.help li{margin:4px 0}
+.help .ex{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:19px}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(calc(100% + 80px));visibility:hidden;background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-weight:700;z-index:90;transition:transform .3s;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 24px);text-align:center}
+.toast.on{transform:translateX(-50%) translateY(0);visibility:visible}
+.sprite{display:block;overflow:visible;flex:none}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 class="logo"><span class="i">Ion</span><span class="b">agrams</span></h1>
+  <div class="spacer"></div>
+  <div class="coins" title="Your ⚛ points" aria-label="Your points"><span class="coin" aria-hidden="true">⚛</span><span id="coinCount">0</span></div>
+  <button class="iconbtn off" id="musicBtn" aria-pressed="false" aria-label="Music" title="Music"><span aria-hidden="true">♪</span></button>
+  <button class="iconbtn off" id="sfxBtn" aria-pressed="false" aria-label="Sound effects" title="Sound effects"><span aria-hidden="true">🔊</span></button>
+  <button class="iconbtn" id="helpBtn" aria-label="How to play" title="How to play"><span aria-hidden="true">?</span></button>
+</header>
+
+<main class="wrap">
+  <!-- START -->
+  <section class="screen on" id="sStart" aria-labelledby="startH">
+    <div class="hero">
+      <div class="stack">
+        <div class="card">
+          <h2 id="startH">Race to use every ion</h2>
+          <p class="lead">Group ion tiles into compounds and lock in their charges. Use every tile first to win, but your classmates check your work!</p>
+          <div class="demo" aria-label="Example: one Ca 2 plus and two Cl minus make Ca Cl 2" id="demo"></div>
+        </div>
+        <div class="card" id="whoCard"><div class="who" id="who"></div><div id="perPick" hidden></div></div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="opt"><div class="lbl" id="xtL">Extra time<small>10 tiles instead of 12. ⚛ ×½.</small></div>
+            <button class="switch" id="xtSw" role="switch" aria-checked="false" aria-labelledby="xtL"></button></div>
+          <div class="opt"><div class="lbl" id="mathL">Show charge math<small>When you lock, see rows like 2 × (+3) = __</small></div>
+            <button class="switch" id="mathSw" role="switch" aria-checked="false" aria-labelledby="mathL"></button></div>
+        </div>
+        <div class="playbtns">
+          <button class="btn big" id="multiBtn">Play with classmates</button>
+          <p class="note" id="multiNote" hidden>Playing with classmates needs the internet. Practice alone works anywhere.</p>
+          <div class="card prac">
+            <span style="font-weight:700">Names:</span>
+            <div class="seg" role="group" aria-label="Naming for practice" id="pracNaming"></div>
+            <button class="btn alt big wide" id="pracBtn">Practice alone</button>
+          </div>
+        </div>
+        <div class="card teach" id="teachCard" hidden>
+          <h3>Teacher settings</h3>
+          <p class="note">Rooms made in this period use these settings.</p>
+          <fieldset><legend>Period</legend><div class="chips" id="tPer"></div></fieldset>
+          <fieldset><legend>Ions</legend>
+            <label class="chk"><input type="checkbox" id="tMono"> Single-atom ions</label>
+            <label class="chk"><input type="checkbox" id="tPoly"> Polyatomic ions (NH₄⁺, OH⁻, NO₃⁻, CO₃²⁻, SO₄²⁻, PO₄³⁻)</label>
+            <label class="chk"><input type="checkbox" id="tPoly2"> More polyatomic ions (acetate, cyanide, chromate…)</label>
+            <label class="chk"><input type="checkbox" id="tTm"> Metals with Roman numerals</label>
+          </fieldset>
+          <fieldset><legend>Tile shapes (easier)</legend><div class="seg" role="group" aria-label="Tile shapes" id="tShapes"></div></fieldset>
+          <fieldset><legend>Least naming allowed</legend><div class="seg" role="group" aria-label="Least naming allowed" id="tNaming"></div></fieldset>
+          <p class="err" id="tErr" aria-live="polite"></p>
+          <button class="btn" id="tSave">Save settings</button>
+        </div>
+      </div>
+    </div>
+    <p class="version">Version: Oct 18, 2026, v1</p>
+  </section>
+
+  <!-- LOBBY -->
+  <section class="screen" id="sLobby" aria-labelledby="lobbyH">
+    <div class="bar">
+      <button class="iconbtn" id="lobbyBack" aria-label="Back to start" title="Back"><span aria-hidden="true">←</span></button>
+      <h2 id="lobbyH">Rooms</h2>
+      <button class="btn" id="newRoomBtn">＋ New room</button>
+    </div>
+    <p class="note" id="lobbyMsg" aria-live="polite"></p>
+    <div class="rooms" id="rooms"></div>
+  </section>
+
+  <!-- WAITING -->
+  <section class="screen" id="sWait" aria-labelledby="waitH">
+    <div class="bar">
+      <h2 id="waitH">Room</h2>
+      <button class="btn alt" id="waitLeave">Leave</button>
+    </div>
+    <div class="waitgrid">
+      <div class="card stack">
+        <div class="cd" id="cd" aria-live="polite"></div>
+        <button class="btn big readybtn" id="readyBtn" aria-pressed="false">I'm ready</button>
+        <p class="note" style="text-align:center">Starts when everyone is ready, or in 15 seconds.</p>
+        <p class="note" id="roomInfo" style="text-align:center"></p>
+      </div>
+      <div class="card"><h3 id="plH">Players</h3><ul class="plist" id="plist" aria-labelledby="plH"></ul></div>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="sPlay" aria-label="Game">
+    <div class="hud">
+      <button class="btn alt" id="playLeave" style="min-height:44px;padding:6px 12px">Leave</button>
+      <div class="stat" id="timeStat"><small>Time</small><span id="timeLeft">8:00</span></div>
+      <div class="stat"><small>Tiles left</small><span id="leftCount">0</span></div>
+      <div class="stat xt" id="xtStat" hidden>Extra time</div>
+      <div class="stat" id="namingStat" hidden></div>
+    </div>
+    <div class="opps" id="opps" aria-label="Other players"></div>
+    <div id="buildArea">
+      <div class="banner bad" id="outBanner" hidden>You're out this round. Keep watching, and you can still flag mistakes.</div>
+      <div class="playgrid" id="playgrid">
+        <div>
+          <div class="groups" id="groups" aria-label="Your compounds"></div>
+        </div>
+        <div class="side">
+          <div class="trayzone" id="trayZone" data-drop="tray">
+            <div class="th"><b id="trayH">Your tiles</b><span class="hint" id="trayHint" aria-live="polite"></span></div>
+            <div class="tray" id="tray" aria-labelledby="trayH"></div>
+            <button class="addhere" id="putBack" data-drop="tray" hidden style="width:100%;margin-top:6px">Put it back here</button>
+            <div class="tfoot">
+              <button class="swap" id="swapBtn" data-drop="swap"><span>Swap 1 → get 2<small id="swapSub">Pick a tile first</small></span></button>
+              <button class="btn donebtn" id="doneBtn" disabled>Done!</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="checkArea" hidden></div>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="screen" id="sReview" aria-labelledby="revH">
+    <div class="bar"><h2 id="revH">Your round</h2></div>
+    <p class="lead" id="revWhy"></p>
+    <div class="playgrid revgrid">
+      <div class="revg"><div class="cgroups" id="revGroups"></div><p class="note" id="revUnused"></p></div>
+      <div class="card revcard">
+        <div class="score"><span class="coin" style="width:44px;height:44px;font-size:24px" aria-hidden="true">⚛</span><span id="revTotal">0</span></div>
+        <ul class="lines" id="revLines"></ul>
+        <p class="note" id="revSave"></p>
+        <div class="row" style="margin-top:12px" id="revBtns"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="sResults" aria-labelledby="resH">
+    <div class="bar"><h2 id="resH">Room results</h2></div>
+    <p class="lead" id="resWhy"></p>
+    <div class="card"><ul class="res" id="resList"></ul></div>
+    <p class="note" id="resNote" aria-live="polite"></p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn alt big" id="resLeave" style="flex:1">Leave</button>
+      <button class="btn big go" id="againBtn" style="flex:1">Play again</button>
+    </div>
+  </section>
+</main>
+
+<div class="cover" id="cover" hidden aria-live="assertive"><div class="n" id="coverN"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="dLock" aria-labelledby="lockH"><form method="dialog" class="dlg" id="lockForm">
+  <div class="dh"><h2 id="lockH">Lock this compound</h2><button type="button" class="xbtn" data-close aria-label="Close">✕</button></div>
+  <div class="bigf" id="lockF"></div>
+  <div id="lockPos"></div>
+  <div id="lockNeg"></div>
+  <div id="lockName"></div>
+  <div class="dfoot"><button type="button" class="btn alt" data-close>Cancel</button><button type="submit" class="btn go" id="lockGo">🔒 Lock</button></div>
+</form></dialog>
+
+<dialog id="dRoom" aria-labelledby="roomH"><form method="dialog" class="dlg" id="roomForm">
+  <div class="dh"><h2 id="roomH">New room</h2><button type="button" class="xbtn" data-close aria-label="Close">✕</button></div>
+  <div><div style="font-weight:700;margin-bottom:6px" id="rnL">Names</div><div class="seg" role="group" aria-labelledby="rnL" id="rNaming"></div><p class="note" id="rNamingNote"></p></div>
+  <div><div style="font-weight:700;margin-bottom:6px" id="rmL">Most players</div><div class="seg" role="group" aria-labelledby="rmL" id="rMax"></div></div>
+  <p class="note" id="rSets"></p>
+  <p class="err" id="rErr" aria-live="polite"></p>
+  <div class="dfoot"><button type="button" class="btn alt" data-close>Cancel</button><button type="submit" class="btn go" id="rGo">Make room</button></div>
+</form></dialog>
+
+<dialog id="dLogin" aria-labelledby="loginH"><div class="dlg" id="loginBody"></div></dialog>
+
+<dialog id="dConfirm" aria-labelledby="confH"><form method="dialog" class="dlg">
+  <div class="dh"><h2 id="confH">Leave?</h2></div>
+  <p id="confT" style="margin:0"></p>
+  <div class="dfoot"><button value="no" class="btn alt" id="confNo">Stay</button><button value="yes" class="btn" id="confYes">Leave</button></div>
+</form></dialog>
+
+<dialog id="dHelp" aria-labelledby="helpH"><div class="dlg help">
+  <div class="dh"><h2 id="helpH">How to play</h2><button type="button" class="xbtn" data-close aria-label="Close">✕</button></div>
+  <ol>
+    <li>Tap a tile, then tap a compound to put it there. You can drag too.</li>
+    <li>A compound has one kind of + ion and one kind of − ion.</li>
+    <li>The charges must add to zero: <span class="ex"><span class="m">Ca²⁺</span> + 2 <span class="x">Cl⁻</span> → <span class="m">Ca</span><span class="x">Cl₂</span></span> is +2 and −2.</li>
+    <li>Use the smallest ratio: <span class="ex">CaO</span>, not <span class="ex">Ca₂O₂</span>.</li>
+    <li>Tap <b>Lock</b>. Enter the total + charge and total − charge (and the name, if names are on).</li>
+    <li>Stuck? Put a tile in <b>Swap</b> to get 2 new tiles.</li>
+    <li>Use every tile, then tap <b>Done!</b> Others check your compounds and flag mistakes.</li>
+    <li>All right: you win. Any mistake: you're out, and the others keep going.</li>
+  </ol>
+  <p class="note">Every correct locked compound earns ⚛. Catch a real mistake: +15. Flag a right one: −10.</p>
+  <p class="note">Version: Oct 18, 2026, v1</p>
+  <button class="btn" data-close>Got it</button>
+</div></dialog>
+
+<script src="https://gibsonm1.github.io/theme/login-v1.js"></script>
+<script src="https://gibsonm1.github.io/theme/rooms-v1.js"></script>
+<script src="../shared/ions.js"></script>
+<script src="rules.js"></script>
+<script src="music.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
