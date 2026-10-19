@@ -314,7 +314,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
     <div class="spacer"></div>
     <button class="who" id="whoBtn" hidden></button>
     <div class="coins" title="Points"><span class="coin">⚛</span><span id="coinCount">0</span></div>
-    <button class="iconbtn" id="musicBtn" aria-label="Music in Charge Command" title="Music">♪</button>
+    <button class="iconbtn" id="musicBtn" aria-label="Music on or off" title="Music">♪</button>
     <button class="iconbtn" id="muteBtn" aria-label="Sound on or off">🔊</button>
   </header>
 
@@ -492,7 +492,24 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 </div>
 
 <script src="https://gibsonm1.github.io/theme/login-v1.js"></script>
+<script src="https://gibsonm1.github.io/theme/chembeats-v1.js"></script>
+<script src="https://gibsonm1.github.io/theme/chembeats-tracks2.js"></script>
 <script>
+// ======================== MUSIC CONFIG (safe to edit) ========================
+const MUSIC_CFG = {
+  VOLUME: 0.1,          // beat music volume, 0–1. 0.1 sits about 8 dB under the sound effects.
+  CMD_VOLUME: 0.083,    // Charge Command's own spooky loop (was 0.07 = +18%)
+  HOME: 'boombap',      // home screen (calm). Track ids: boombap, boombap-up, stutter, trap16, drill, bounce, rage, jersey
+  BUILD: 'stutter',     // Bond: free build + build the name
+  DROP: 'trap16',       // Name drop: pick the name + pick the formula
+  TYPE: 'boombap-up',   // Name drop: type the name
+  LEVELS_PER_STEP: 3,   // game levels per music step: levels 1–3 = music level 1, 4–6 = 2, 7–9 = 3, 10+ = 4
+  PRACTICE_MAX: 2,      // highest music level in Practice
+  TYPE_MAX: 2,          // highest music level in Type the name (reading + typing needs focus)
+  INTRO_DUCK: 0.35      // music volume multiplier while a new-ion card is open (names are read aloud)
+};
+// Say my name has no music on purpose: it could confuse the mic.
+// =============================================================================
 (() => {
 // ================= DATA =================
 const CATIONS = [
@@ -794,21 +811,21 @@ function start(mode){
   document.querySelectorAll('[data-xt]').forEach(x=>x.hidden=!save.el);
   const st=save.stats[kind+'-'+sub]||(save.stats[kind+'-'+sub]={p:0,r:0,w:0});st.p++;persist();
   if(kind==='build')startBuild(sub,timed);else if(kind==='cmd')startCmd(sub,timed);else startDrop(sub,timed);
-  raf=requestAnimationFrame(loop);
+  raf=requestAnimationFrame(loop);musicScene();
 }
 function endGame(why){
   const m=lastMode,s=game.score;stop();
   const prev=save.best[m]||0;if(s>prev){save.best[m]=s;persist()}
   $('oWhy').textContent=why;$('oScore').textContent=s;
   $('oBest').textContent=s>prev&&s>0?'New best!':'Best: '+(save.best[m]||0);
-  show('over');flush();
+  show('over');flush();if(CB)CB.stop();
 }
-function goHome(){stop();renderHome();show('home');flush()}
+function goHome(){stop();renderHome();show('home');flush();musicScene()}
 
 // ================= LEVELS + NEW-ION SHOWCASE =================
 function levelUp(extra=''){
   const before=pools(game.level),had=new Set([...before.cats,...before.ans].map(i=>i.k));
-  game.level++;
+  game.level++;musicScene();
   const after=pools(game.level);
   const fresh=[...after.cats,...after.ans].filter(i=>(i.poly||i.tm)&&!had.has(i.k));
   const stage=game.kind==='build'?FADE_AT.indexOf(game.level):-1;
@@ -828,7 +845,7 @@ function levelUp(extra=''){
 let introQ=[];
 function showIntro(list){
   if(!game)return;
-  introQ=list.slice();game.paused=true;nextIntro();
+  introQ=list.slice();game.paused=true;duck(true);nextIntro();
 }
 function nextIntro(){
   const card=introQ.shift();
@@ -867,7 +884,7 @@ function nextIntro(){
   if(!save.muted)setTimeout(()=>{if(!$('intro').hidden)speakName(ions.map(ionName).join(', '))},450);
 }
 function closeIntro(){
-  $('intro').hidden=true;introQ=[];
+  $('intro').hidden=true;introQ=[];duck(false);
   if(game){game.paused=false;game.listenAt=performance.now()+500}
 }
 $('introGo').addEventListener('click',()=>{try{speechSynthesis.cancel()}catch(e){}introQ.length?nextIntro():closeIntro()});
@@ -1342,11 +1359,11 @@ function musTick(t){
   MUS.step++;
 }
 function musicStart(){
-  if(MUS.on||save.music===false)return;
+  if(MUS.on||!musicOn())return;
   try{
     actx=actx||new (window.AudioContext||window.webkitAudioContext)();
     if(actx.state==='suspended')actx.resume();
-    MUS.gain=actx.createGain();MUS.gain.gain.value=.07;MUS.gain.connect(actx.destination);
+    MUS.gain=actx.createGain();MUS.gain.gain.value=MUSIC_CFG.CMD_VOLUME;MUS.gain.connect(actx.destination);
     MUS.on=true;MUS.step=0;MUS.next=actx.currentTime+.1;
     MUS.timer=setInterval(()=>{
       if(!game||game.kind!=='cmd'){musicStop();return}
@@ -1360,11 +1377,33 @@ function musicStop(){
   if(MUS.on&&MUS.gain){const g=MUS.gain;try{g.gain.setTargetAtTime(0,actx.currentTime,.05);setTimeout(()=>g.disconnect(),400)}catch(e){}}
   MUS.on=false;MUS.gain=null;
 }
-function musicBtn(){const b=$('musicBtn');b.classList.toggle('off',save.music===false);b.setAttribute('aria-pressed',String(save.music!==false))}
-$('musicBtn').addEventListener('click',()=>{
-  save.music=save.music===false;persist();musicBtn();
-  if(save.music!==false&&game&&game.kind==='cmd')musicStart();else musicStop();
-});
+function musicBtn(){const b=$('musicBtn'),on=musicOn();b.classList.toggle('off',!on);b.setAttribute('aria-pressed',String(on));b.title=on?'Music: on':'Music: off'}
+$('musicBtn').addEventListener('click',()=>{gestured=true;setMusicPref(!musicOn());musicBtn();musicScene()});
+
+// ================= BEAT MUSIC (ChemBeats, shared from the theme repo) =================
+// One music setting for all of iBond, kept on this device ('ibond-music'). Off on a first visit.
+const CB=window.ChemBeats&&window.ChemBeats.play?window.ChemBeats:null;
+const MUSIC_KEY='ibond-music';
+if(CB){CB.init({game:'ibond'});CB.setVolume(MUSIC_CFG.VOLUME)}
+function musicOn(){try{return localStorage.getItem(MUSIC_KEY)==='on'}catch(e){return false}}
+function setMusicPref(on){if(CB)CB.setEnabled(on);else try{localStorage.setItem(MUSIC_KEY,on?'on':'off')}catch(e){}}
+let gestured=false; // browsers only allow sound after a tap or key press
+function duck(on){if(CB)CB.setVolume(MUSIC_CFG.VOLUME*(on?MUSIC_CFG.INTRO_DUCK:1))}
+// decides what should be playing right now
+function musicScene(){
+  if(!CB||!musicOn()||!gestured){if(CB)CB.stop();if(!musicOn())musicStop();return}
+  if(!game){if($('home').classList.contains('on'))CB.play(MUSIC_CFG.HOME,1);else CB.stop();return}
+  if(game.kind==='cmd'){CB.stop();musicStart();return}
+  const say=game.kind==='drop'&&game.sub==='say';
+  if(say){CB.stop();return}
+  const type=game.kind==='drop'&&game.sub==='type';
+  const track=game.kind==='build'?MUSIC_CFG.BUILD:type?MUSIC_CFG.TYPE:MUSIC_CFG.DROP;
+  let cap=4;if(!game.timed)cap=Math.min(cap,MUSIC_CFG.PRACTICE_MAX);if(type)cap=Math.min(cap,MUSIC_CFG.TYPE_MAX);
+  const L=Math.max(1,Math.min(cap,1+Math.floor((game.level-1)/MUSIC_CFG.LEVELS_PER_STEP)));
+  CB.play(track,L);CB.setLevel(L);
+}
+['pointerdown','keydown'].forEach(ev=>addEventListener(ev,()=>{if(!gestured){gestured=true;musicScene()}},{capture:true}));
+document.addEventListener('visibilitychange',()=>{if(!CB)return;if(document.hidden)CB.pause();else CB.resume()});
 
 // ================= CHARGE COMMAND =================
 // Compounds fall toward the labs. The first shot names one ion's charge and cracks it off;

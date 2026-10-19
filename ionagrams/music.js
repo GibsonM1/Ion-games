@@ -15,11 +15,28 @@ const CONFIG={
   LAYERS:[.2,.45,.7,.9],   // intensity that adds each build layer (drums, arpeggio, full groove, lead); checked on bar lines
   XFADE:.45,               // crossfade seconds between phases
   AHEAD:.2,                // schedule notes this many seconds ahead
-  TIMER_MS:50              // scheduler wake-up interval
+  TIMER_MS:50,             // scheduler wake-up interval
+  // ChemBeats (shared beat music from the theme repo). These phases use a ChemBeats track instead of the music below.
+  // Countdown, challenge heartbeat, reveal and win stings stay as they are. Set a phase to null to use the old music.
+  BEATS:{lobby:'bounce',build:'drill',review:'boombap'},
+  BEATS_VOLUME:.1,         // ChemBeats volume, 0–1 (about 8 dB under the sound effects)
+  BEATS_STEPS:[.25,.5,.75] // build progress (0–1) that moves the beat up to level 2, 3 and 4
 };
 let ctx=null,master,musBus,sfxBus,sfxSoft,noise,timer=0,sec=null;
 let musicOn=false,sfxOn=false,ph='off',inten=0,step=0,next=0,bpm=100,level=0,t0=0;
 const lastFx={};
+// ---------- ChemBeats hand-off ----------
+const CB=typeof window!=='undefined'&&window.ChemBeats&&window.ChemBeats.play?window.ChemBeats:null;
+if(CB){CB.init({game:'ionagrams'});CB.setVolume(CONFIG.BEATS_VOLUME)}
+const beatsOwn=p=>!!(CB&&CONFIG.BEATS[p]);
+const beatLevel=()=>ph==='build'?1+CONFIG.BEATS_STEPS.filter(x=>inten>=x).length:1;
+function syncBeats(){ // only after unlock(), so audio starts from a tap
+  if(!CB||!ctx)return;
+  try{
+    if(musicOn&&beatsOwn(ph)&&!hidden()){CB.setEnabled(true);CB.play(CONFIG.BEATS[ph],beatLevel());CB.setLevel(beatLevel())}
+    else CB.stop();
+  }catch(e){}
+}
 const mhz=n=>440*Math.pow(2,(n-69)/12);
 const ok=()=>!!ctx&&ctx.state==='running';
 const hidden=()=>typeof document!=='undefined'&&!!document.hidden;
@@ -127,7 +144,7 @@ function newSection(){
 }
 function tick(){
   try{
-    if(!ok()||!musicOn||ph==='off'||hidden())return;
+    if(!ok()||!musicOn||ph==='off'||hidden()||beatsOwn(ph))return;
     if(!sec)newSection();
     const now=ctx.currentTime;
     if(next<now-.1)next=now+.03;               // timer was starved (throttled tab): skip ahead, never burst
@@ -172,17 +189,17 @@ const API={
         const len=ctx.sampleRate*3|0;noise=ctx.createBuffer(1,len,ctx.sampleRate);
         const d=noise.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
       }
-      resume();startTimer();return true;
+      resume();startTimer();syncBeats();return true;
     }catch(e){ctx=null;return false}
   },
   ready:()=>ok(),
-  setMusic(on){musicOn=!!on;if(!ctx)return;ramp(musBus.gain,musicOn&&!hidden()?CONFIG.MUSIC:0);if(!musicOn)dropSection();},
+  setMusic(on){musicOn=!!on;if(!ctx)return;ramp(musBus.gain,musicOn&&!hidden()?CONFIG.MUSIC:0);if(!musicOn)dropSection();syncBeats();},
   setSfx(on){sfxOn=!!on},
   phase(name){
     if(!(name in PH)&&name!=='off')return;if(name===ph)return;
-    ph=name;if(ctx)dropSection();
+    ph=name;if(ctx)dropSection();syncBeats();
   },
-  intensity(x){x=+x;inten=x>1?1:x>0?x:0},
+  intensity(x){x=+x;inten=x>1?1:x>0?x:0;if(CB&&ctx&&musicOn&&ph==='build'&&beatsOwn(ph))CB.setLevel(beatLevel())},
   sfx(name){
     if(!sfxOn||!ctx||!FX[name])return;resume();if(!ok())return;
     try{const t=ctx.currentTime;if(t-(lastFx[name]??-1)<.03)return;lastFx[name]=t;FX[name](t+.005)}catch(e){}
@@ -190,8 +207,8 @@ const API={
 };
 if(typeof document!=='undefined'&&document.addEventListener)document.addEventListener('visibilitychange',()=>{
   if(!ctx)return;
-  if(document.hidden){stopTimer();ramp(musBus.gain,0)}
-  else{ramp(musBus.gain,musicOn?CONFIG.MUSIC:0);startTimer()}
+  if(document.hidden){stopTimer();ramp(musBus.gain,0);if(CB)CB.pause()}
+  else{ramp(musBus.gain,musicOn?CONFIG.MUSIC:0);startTimer();if(CB)CB.resume()}
 });
 if(typeof window!=='undefined')window.IonSound=API;
 if(typeof module!=='undefined'&&module.exports)module.exports=API;
