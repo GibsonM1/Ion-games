@@ -9,7 +9,7 @@ const ok = (c, n) => { console.log((c ? 'ok   ' : 'FAIL ') + n); if (!c) fails++
 const PH = { w: 390, h: 844 }, BIG = [{ width: 390, height: 844 }, { width: 1366, height: 650 }];
 
 (async () => {
-  const H = await setup({ config: { CHALLENGE_MS: 9000, REVEAL_MS: 5000, REVIEW_MS: 7000 } });
+  const H = await setup({ config: { CHALLENGE_BASE_MS: 9000, CHALLENGE_PER_COMPOUND_MS: 0, REVEAL_MS: 5000, REVIEW_MS: 7000 } });
   try {
     const A = await H.player('A'), Bp = await H.player('B', { viewport: { width: 390, height: 844 } }),
       C = await H.player('C'), D = await H.player('D', { viewport: { width: 390, height: 844 } });

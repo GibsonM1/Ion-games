@@ -6,7 +6,7 @@ let fails = 0;
 const ok = (c, n) => { console.log((c ? 'ok   ' : 'FAIL ') + n); if (!c) fails++; };
 
 (async () => {
-  const H = await setup({ config: { ROUND_MS: 20000, CHALLENGE_MS: 4000, REVEAL_MS: 3000, REVIEW_MS: 3000, TEACHERS: ['garciam'] } });
+  const H = await setup({ config: { ROUND_MS: 20000, CHALLENGE_BASE_MS: 4000, CHALLENGE_PER_COMPOUND_MS: 0, REVEAL_MS: 3000, REVIEW_MS: 3000, TEACHERS: ['garciam'] } });
   try {
     // ---- teacher sets period 3: polyatomic only, shapes on, least naming = pick ----
     const T = await H.player('teacher');
