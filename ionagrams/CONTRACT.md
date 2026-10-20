@@ -2,7 +2,7 @@
 
 Every module is written against this file. If a module needs something not listed here, add it to its own file and note it in its report; don't change another module's API.
 
-Game summary: Bananagrams with ions. 2–5 players per room. Each player gets their own hand of ion tiles, groups them into compounds, **locks** each compound by entering its total + and total − charge (and naming it, if the room's naming mode is on), and races to use every tile. Nothing is checked during the build. When a player calls **Done**, everyone freezes, the room checks that player's compounds for 25 s and flags any they think are wrong, then the game reveals the verdict. All correct = that player wins. Any wrong = that player is out ("rotten") and everyone else resumes. Every player then sees a personal review of their own compounds, and earns ⚛ for every correct locked compound.
+Game summary: Bananagrams with ions. 2–5 players per room. Each player gets their own hand of ion tiles, groups them into compounds, **locks** each compound by entering its total + and total − charge (and naming it, if the room's naming mode is on), and races to use every tile. Nothing is checked during the build. When a player calls **Done**, everyone freezes, the room checks that player's compounds (30 s + 10 s per compound, max 90 s; ends early when every checker taps "I'm done checking") and flags any they think are wrong, then the game reveals the verdict. All correct = that player wins. Any wrong = that player is out ("rotten") and everyone else resumes. Every player then sees a personal review of their own compounds, and earns ⚛ for every correct locked compound.
 
 Students: grades 10–12. Half read below grade level, a quarter are English learners. Interface text: short, literal, plain English (English only for v1).
 
@@ -165,7 +165,8 @@ Lobby automation, run by the host's browser (every 500 ms and on change):
 ```
 data/progress/{uid}: { left, groups, locked }            // tiles not in locked groups; shown to opponents
 data/boards/{uid}:   { groups:[{ions,pos,neg,name}], at } // published right before calling Done
-data/done:           { uid, n, at, endsAt }               // set by transaction only when empty: first caller wins
+data/done:           { uid, n, at, endsAt, dur }             // set by transaction only when empty: first caller wins
+data/checked/{n}/{uid}: true                           // "I'm done checking"; host moves done/endsAt to now+1 s when every checker is in
 data/flags/{n}/{uid}: { "0":true, "3":true }              // indices of the caller's groups this player flags
 data/verdict/{n}:    { uid, ok }                          // host writes at endsAt (everyone can compute it too)
 data/out/{uid}:      true                                 // rotten

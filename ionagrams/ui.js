@@ -3,7 +3,9 @@ const CONFIG = {
   GAME_ID: 'ionagrams',          // name used when saving ⚛ and in the room database (also needs a GAMES entry in Code.gs)
   HAND_SIZE: 12,                 // tiles in a normal hand
   EXTRA_HAND: 10,                // tiles in an Extra time hand (that student's ⚛ are halved)
-  CHALLENGE_MS: 25000,           // how long classmates check a player's compounds after they tap Done (25 s)
+  CHALLENGE_BASE_MS: 30000,      // checking time after someone taps Done: 30 s to start...
+  CHALLENGE_PER_COMPOUND_MS: 10000, // ...plus 10 s for each compound they made...
+  CHALLENGE_MAX_MS: 90000,       // ...but never more than 90 s. It ends early when every checker taps "I'm done checking".
   REVEAL_MS: 7000,               // how long the right/wrong reveal stays on screen (7 s)
   ROUND_MS: 480000,              // longest a round can last (8 minutes)
   REVIEW_MS: 20000,              // how long each student's own review shows before the room results (20 s)
@@ -169,6 +171,7 @@ function show(id) {
   screen = id;
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   if (id === 'sStart' || id === 'sLobby') phase('lobby');
+  $('homeBtn').hidden = !(id === 'sStart' || id === 'sLobby');   // in a room, use Leave first
 }
 function addCoins(n) {
   const before = save.coins; save.coins += n; if (who) save.pending = (save.pending || 0) + n;
@@ -702,6 +705,10 @@ function pubProgress(now) {
   const go = () => { if (!M) return; pubLast = j; M.room.set('progress/' + M.room.uid, v).catch(() => { pubLast = ''; }); };
   if (now) go(); else pubT = setTimeout(go, 700);
 }
+const challengeMs = n => Math.min(CONFIG.CHALLENGE_MAX_MS, CONFIG.CHALLENGE_BASE_MS + CONFIG.CHALLENGE_PER_COMPOUND_MS * n);
+// who is checking this Done: everyone still in the room except the caller (out players can still flag)
+const checkersOf = (s, done) => Object.keys((s.meta && s.meta.roster) || {}).filter(u => u !== done.uid && s.players[u]);
+const checkedOf = (d, done) => Object.keys(((d.checked || {})[done.n]) || {}).filter(u => d.checked[done.n][u]);
 function nextN(d) { let n = 0; Object.keys(d.verdict || {}).forEach(k => { if ((d.verdict || {})[k]) n = Math.max(n, +k); }); return n + 1; }
 async function callDone() {
   if (!B || !canDone() || !editable()) return;
@@ -715,7 +722,8 @@ async function callDone() {
   try {
     await M.room.set('boards/' + me, board);
     const n = nextN(d);
-    const r = await M.room.txn('done', cur => (cur ? undefined : { uid: me, n, at: sNow(), endsAt: sNow() + CONFIG.CHALLENGE_MS }));
+    const dur = challengeMs(board.groups.length);
+    const r = await M.room.txn('done', cur => (cur ? undefined : { uid: me, n, at: sNow(), endsAt: sNow() + dur, dur }));
     if (r.committed && r.value && r.value.uid === me) sfx('done');
     else toast('Someone else called Done first.');
   } catch (e) { toast('Couldn’t reach the room. Try Done again.'); }
@@ -738,7 +746,12 @@ function hostTick() {
   const now = sNow(); if (now < m.startAt) return;
   const done = d.done;
   if (done) {
-    if (now < done.endsAt) return;
+    if (now < done.endsAt) {
+      const who = checkersOf(s, done), got = new Set(checkedOf(d, done));
+      if (who.length && who.every(u => got.has(u)) && done.endsAt - now > 1500)
+        hostOnce(key + 'e' + done.n, () => r.set('done/endsAt', now + 1000));
+      return;
+    }
     const v = d.verdict && d.verdict[done.n], chk = v ? null : doneCheck(d, m);
     const ok = v ? !!v.ok : chk ? chk.ok : null;
     if (ok == null) return;
@@ -844,7 +857,7 @@ function tickPlay() {
   }
   if (B.phase === 'check' && d.done) {
     const bar = $('chkBar');
-    if (bar) bar.style.width = Math.max(0, Math.min(100, (d.done.endsAt - now) / CONFIG.CHALLENGE_MS * 100)) + '%';
+    if (bar) bar.style.width = Math.max(0, Math.min(100, (d.done.endsAt - now) / (d.done.dur || challengeMs(4)) * 100)) + '%';
     const tl = $('chkLeft'); if (tl) tl.textContent = Math.max(0, Math.ceil((d.done.endsAt - now) / 1000)) + ' s';
     const rl = $('revLeft'), rs = Math.ceil((d.done.endsAt + CONFIG.REVEAL_MS - now) / 1000);
     if (rl) rl.textContent = rs > 0 ? (B.out || M.revOk ? '' : '(Back to building in ' + rs + ' s)') : '';
@@ -874,9 +887,13 @@ function renderCheck(update) {
     const counts = chk.groups.map((g, i) => Object.keys(allFlags).filter(u => flagSet(allFlags[u]).has(i)).length);
     el.innerHTML = `<div class="chk-h"><h2>${mine ? 'Others are checking your compounds.' : cn + ' says Done!'}</h2><div class="stat"><small>Time</small><span id="chkLeft"></span></div></div>` +
       `<p style="margin:0">${mine ? 'Wait for the check.' : 'Is every compound right? Tap any that looks wrong.'}</p><div class="tbar"><i id="chkBar"></i></div>` +
+      (mine ? `<p class="note" style="margin:-4px 0 10px">${(() => { const w = checkersOf(s, done), g = checkedOf(d, done).filter(u => w.includes(u)).length; return w.length ? g + ' of ' + w.length + ' finished checking' : ''; })()}</p>` : '') +
       `<div class="cgroups">${chk.groups.map((g, i) => mine
         ? `<div class="cg"><div class="fm">${R.formulaHTML(g.ions)}</div>${claim(g)}<div class="fl">${counts[i] ? '⚑ ' + plural(counts[i], 'flag') : ''}</div></div>`
         : `<button class="cg" data-flag="${i}" aria-pressed="${myF.has(i)}"><div class="fm">${R.formulaHTML(g.ions)}</div>${claim(g)}<div class="fl">${myF.has(i) ? '⚑ Looks wrong' : 'Tap if wrong'}</div></button>`).join('')}</div>`;
+    if (!mine) { const did = checkedOf(d, done).includes(me);
+      el.insertAdjacentHTML('beforeend', `<div class="chkdone"><button class="btn${did ? ' alt' : ''}" id="chkDoneBtn" aria-pressed="${did}">${did ? '✓ Done checking (tap to undo)' : 'I’m done checking'}</button>` +
+        `<span class="note">When everyone is done, the answers show right away.</span></div>`); }
   } else {
     phase('reveal');
     const res = chk.results, ok = chk.ok; M.revOk = ok;
@@ -900,6 +917,15 @@ function renderCheck(update) {
   tickPlay();
 }
 $('checkArea').addEventListener('click', e => {
+  const cb = e.target.closest('#chkDoneBtn');
+  if (cb && M) {
+    const d = snap().data || {}, done = d.done; if (!done || sNow() >= done.endsAt) return;
+    const on = cb.getAttribute('aria-pressed') !== 'true';
+    cb.setAttribute('aria-pressed', on); cb.classList.toggle('alt', on);
+    cb.textContent = on ? '✓ Done checking (tap to undo)' : 'I’m done checking'; sfx('pick');
+    M.room.set('checked/' + done.n + '/' + M.room.uid, on || null).catch(() => {});
+    return;
+  }
   const b = e.target.closest('[data-flag]'); if (!b || !M) return;
   const d = snap().data || {}, done = d.done; if (!done || done.uid === M.room.uid || sNow() >= done.endsAt) return;
   const fk = B.key + '|' + done.n, i = +b.dataset.flag, f = M.flags[fk] || (M.flags[fk] = new Set());
