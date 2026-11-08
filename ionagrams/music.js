@@ -17,8 +17,15 @@ const CONFIG={
   AHEAD:.2,                // schedule notes this many seconds ahead
   TIMER_MS:50,             // scheduler wake-up interval
   // ChemBeats (shared beat music from the theme repo). These phases use a ChemBeats track instead of the music below.
-  // Countdown, challenge heartbeat, reveal and win stings stay as they are. Set a phase to null to use the old music.
-  BEATS:{lobby:'bounce',build:'drill',review:'boombap'},
+  // Countdown, challenge heartbeat, reveal and win stings stay as they are. Set a phase to [] or null to use the old music.
+  // Each phase has a short pool. Every new lobby / build / review picks one track at random, never the same one as last time.
+  // Track ids: boombap, boombap-up, stutter, trap16, drill, bounce, rage, jersey, bateria, enredo, quintal, partido, roda, crush
+  // A track that did not load is skipped (if none loads, the old music plays). Full list and feel of each track: MUSIC.md
+  BEATS:{
+    lobby:['bounce','partido','enredo'],            // waiting room: upbeat and friendly, party feel
+    build:['drill','bateria','trap16','stutter'],   // building compounds: driving but steady; drums-only and puzzle tracks help focus
+    review:['boombap','quintal','crush','roda']     // results: calm and relaxed
+  },
   BEATS_VOLUME:.1,         // ChemBeats volume, 0–1 (about 8 dB under the sound effects)
   BEATS_STEPS:[.25,.5,.75] // build progress (0–1) that moves the beat up to level 2, 3 and 4
 };
@@ -26,14 +33,26 @@ let ctx=null,master,musBus,sfxBus,sfxSoft,noise,timer=0,sec=null;
 let musicOn=false,sfxOn=false,ph='off',inten=0,step=0,next=0,bpm=100,level=0,t0=0;
 const lastFx={};
 // ---------- ChemBeats hand-off ----------
-const CB=typeof window!=='undefined'&&window.ChemBeats&&window.ChemBeats.play?window.ChemBeats:null;
+const MP=typeof window!=='undefined'?window.MusicPick:null;
+const CB=typeof window!=='undefined'&&window.ChemBeats&&window.ChemBeats.play&&MP?window.ChemBeats:null;
 if(CB){CB.init({game:'ionagrams'});CB.setVolume(CONFIG.BEATS_VOLUME)}
-const beatsOwn=p=>!!(CB&&CONFIG.BEATS[p]);
+const AVAIL=CB?MP.available(CB):[];                 // only tracks that loaded count
+const beatsOwn=p=>!!(CB&&MP.filter(CONFIG.BEATS[p],AVAIL).length);
+// one pick per scene, kept while the scene lasts (lobby <-> countdown keeps it); the last pick per scene is kept on this device
+let pk={scene:null,track:null};
+function beatTrack(scene){
+  if(pk.scene===scene)return pk.track;
+  const key='ionagrams-beat-last-'+scene;let last=null;
+  try{last=localStorage.getItem(key)}catch(e){}
+  const t=MP.pick(CONFIG.BEATS[scene],AVAIL,last);
+  if(t)try{localStorage.setItem(key,t)}catch(e){}
+  pk={scene,track:t};return t;
+}
 const beatLevel=()=>ph==='build'?1+CONFIG.BEATS_STEPS.filter(x=>inten>=x).length:1;
 function syncBeats(){ // only after unlock(), so audio starts from a tap
   if(!CB||!ctx)return;
   try{
-    if(musicOn&&beatsOwn(ph)&&!hidden()){CB.setEnabled(true);CB.play(CONFIG.BEATS[ph],beatLevel());CB.setLevel(beatLevel())}
+    if(musicOn&&beatsOwn(ph)&&!hidden()){CB.setEnabled(true);CB.play(beatTrack(ph),beatLevel());CB.setLevel(beatLevel())}
     else CB.stop();
   }catch(e){}
 }
@@ -197,6 +216,7 @@ const API={
   setSfx(on){sfxOn=!!on},
   phase(name){
     if(!(name in PH)&&name!=='off')return;if(name===ph)return;
+    if(pk.scene&&name!==pk.scene&&name!=='countdown'&&name!=='challenge')pk={scene:null,track:null}; // left the scene: next time picks again
     ph=name;if(ctx)dropSection();syncBeats();
   },
   intensity(x){x=+x;inten=x>1?1:x>0?x:0;if(CB&&ctx&&musicOn&&ph==='build'&&beatsOwn(ph))CB.setLevel(beatLevel())},
