@@ -323,8 +323,8 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
     <div class="games">
       <div class="game">
         <div class="art" id="artBuild" aria-hidden="true"></div>
-        <h2>Bond</h2>
-        <p>Snap ions together. Fill every notch.</p>
+        <h2>SumZero</h2>
+        <p>Snap ions together so the positive and negative charges add up to zero.</p>
         <div>
           <div class="mode"><div class="lbl">Free build<small id="best-build-free"></small></div>
             <button class="btn alt" data-start="build-free-practice">Practice</button><button class="btn" data-start="build-free-timed">Timed</button></div>
@@ -337,7 +337,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
           <div class="drop" style="position:static;transform:none;font-size:32px"><span class="m">Ca</span><span class="x">(NO<sub>3</sub>)<sub>2</sub></span></div>
         </div>
         <h2>Name drop</h2>
-        <p>Answer before it lands.</p>
+        <p>Match compound names and formulas before they land. Pick, type, or say your answer.</p>
         <div>
           <div class="mode"><div class="lbl">Pick the name<small id="best-drop-pick"></small></div>
             <button class="btn alt" data-start="drop-pick-practice">Practice</button><button class="btn" data-start="drop-pick-timed">Timed</button></div>
@@ -355,7 +355,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
           <rect x="70" y="40" width="54" height="30" rx="10" fill="var(--paper)" stroke="var(--ink)" stroke-width="3"/><text x="97" y="61" text-anchor="middle" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="19"><tspan fill="var(--cat)">K</tspan><tspan fill="var(--cat)" font-size="12" dy="4">2</tspan><tspan fill="var(--an-deep)" dy="-4">S</tspan></text></svg>
         </div>
         <h2>Charge Command</h2>
-        <p>Read the formula. Fire the right charges before it lands.</p>
+        <p>Read the chemical formula and fire the right ions before it lands.</p>
         <div>
           <div class="mode"><div class="lbl">Defend the labs<small id="best-cmd-play"></small></div>
             <button class="btn alt" data-start="cmd-play-practice">Practice</button><button class="btn" data-start="cmd-play-timed">Battle</button></div>
@@ -366,7 +366,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
           <div class="drop" style="position:static;transform:none;font-size:30px"><span class="m">Al<sub>2</sub></span><span class="x">(SO<sub>4</sub>)<sub>3</sub></span></div>
         </div>
         <h2>Ionagrams</h2>
-        <p>Race your classmates to use every ion. Then check each other's work.</p>
+        <p>Race to group every ion tile into compounds. Then check each other's work.</p>
         <div>
           <div class="mode"><div class="lbl">With classmates or alone</div>
             <a class="btn" href="ionagrams/" style="text-align:center;text-decoration:none;flex:none">Play</a></div>
@@ -391,7 +391,7 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
     <h3>Mastery</h3>
     <div class="panel">
       <div class="mastery" id="masteryGrid"></div>
-      <p class="note">5 correct in a box earns a star. M = positive ion, X = negative ion. In Bond, the puzzle help fades as you level up: no notches at level 8, no colors at level 11, and same-size pieces at level 14.</p>
+      <p class="note">5 correct in a box earns a star. M = positive ion, X = negative ion. In SumZero, the puzzle help fades as you level up: no notches at level 8, no colors at level 11, and same-size pieces at level 14.</p>
     </div>
 
     <section id="boards" hidden>
@@ -856,7 +856,7 @@ function nextIntro(){
     $('introPc').innerHTML=demo.map(i=>{const {x,w}=plainBox(i),h=tileH(i);return `<svg width="${(w+4)*1.3}" height="${(h+4)*1.3}" viewBox="${x-2} -2 ${w+4} ${h+4}" aria-hidden="true">${plainG(i)}</svg>`}).join('');
     $('introF').innerHTML='';
     $('introName').textContent=['No more notches','No more colors','Same-size pieces'][card.stage];
-    $('introCh').textContent=['The pieces are still sized by their charge, so a 2+ piece is twice as tall as a 1+ piece.',
+    $('introCh').textContent=['The pieces are still sized by their charge, so a 2+ piece is twice as tall as a 1+ piece. The charges must still add up to zero.',
       'Read the charge on each piece. Positive ions still go on the left, negative on the right.',
       'Every piece is the same size now. Use the + and − totals beside the box to balance the charges.'][card.stage];
     $('introSpk').hidden=true;
@@ -902,7 +902,7 @@ function startBuild(sub,timed){
   game.tick=buildTick;
   if(sub==='order'){setMsg('Build the compound named above.');newOrder()}
   else{
-    setMsg(save.seenHint?'':'Drag or tap ions into the box. Fill every notch.');
+    setMsg(save.seenHint?'':'Drag or tap ions into the box. Make the charges add up to zero.');
     save.seenHint=true;persist();
     for(let i=0;i<6;i++)game.tray.push(newIon());
   }
@@ -1096,7 +1096,7 @@ function complete(){
     game.streak=0;const pts=pt(5*game.level);game.score+=pts;addCoins(pts);game.made++;sfx.snap();tally('build-'+game.sub,false,`${cat.n} ${an.ide}`);
     const m=a/g,x=b/g;
     $('bFormula').innerHTML=fHTML(cat,an,m,x);
-    setMsg(`Neutral, but use the smallest ratio: ${fText(cat,an,m,x)}  +${pts}`,'');$('bScore').textContent=game.score;
+    setMsg(`The charges add up to zero, but use the smallest ratio: ${fText(cat,an,m,x)}  +${pts}`,'');$('bScore').textContent=game.score;
   }
   if(game.made%5===0)levelUp();
   setTimeout(()=>{
@@ -1424,7 +1424,7 @@ function startCmd(sub,timed){
   game.seq=makeSeq(sub);game.tick=cmdTick;
   $('cLabsWrap').style.display=timed?'':'none';
   $('sky').innerHTML=`<svg class="trails" id="trails"></svg><div class="labs" id="labs"></div>`;
-  show('cmd');renderLabs();cmdHud();cmdMsg(timed?'Defend the labs. Fire the right charges at the lowest compound.':'Fire the right charges at the compound.');
+  show('cmd');renderLabs();cmdHud();cmdMsg(timed?'Defend the labs. Fire the right ions at the lowest compound.':'Fire the right ions at the compound.');
   spawnMissile();musicStart();
 }
 // a flask's liquid is its defense: each misfire it shoots drains a quarter; empty or hit, it's out
@@ -1734,6 +1734,7 @@ const errText=e=>{const k=e&&e.error;return k==='bad_login'?'That username and n
   k==='bad_token'?'You were logged out. Log in again to keep your ⚛.':'Couldn’t reach the class list. Check the internet and try again.'};
 
 // what the teacher's sheet shows for this game
+// 'Bond' is the column name in the teacher's Google Sheet (Code.gs GAMES.ibond.cols). It is not shown to students. Do not rename it here alone.
 const FAM=[['Bond',['build-free','build-order']],['Pick name',['drop-pick']],['Type name',['drop-type']],['Pick formula',['drop-formula']],['Say my name',['drop-say']],['Charge Command',['cmd-play']]];
 function summaryOf(sv){
   const cols={};
