@@ -305,6 +305,132 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 .intro .btn{width:100%}
 .dict{font-size:14px;color:var(--soft);margin:8px 0 0;text-align:center}
 .dict kbd{font-family:inherit;font-weight:700;border:2px solid var(--line);border-radius:6px;padding:0 5px;color:var(--ink)}
+
+/* ===== NAME DROP SCENE (nd-) ===== */
+/* Only applies when the script adds .nd-on to #drop (NAMEDROP_SCENE: true). All motion is transform/opacity.
+   prefers-reduced-motion is handled by the page-wide rule that already stops every animation and transition. */
+.nd-stage{
+  --nd-grout:rgba(23,50,58,.07); --nd-pool:#5CC4DB; --nd-poolTop:#9BE0EE; --nd-bench:#6F8389; --nd-benchTop:#8CA1A7;
+  --nd-w1a:#DDF1F4; --nd-w1b:#C5E6E6; --nd-w2a:#F4EFCF; --nd-w2b:#E7E2BA; --nd-w3a:#F6D8C4; --nd-w3b:#EEC3B4; --nd-w4a:#34506C; --nd-w4b:#24405A;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .nd-stage{
+    --nd-grout:rgba(255,255,255,.05); --nd-pool:#2A93AE; --nd-poolTop:#4DB6CF; --nd-bench:#3E5A62; --nd-benchTop:#557178;
+    --nd-w1a:#1D4553; --nd-w1b:#163943; --nd-w2a:#3A4A3C; --nd-w2b:#2E3D34; --nd-w3a:#5A3C3A; --nd-w3b:#472F34; --nd-w4a:#1A2C48; --nd-w4b:#111E36;
+  }
+}
+:root[data-theme="dark"] .nd-stage{
+  --nd-grout:rgba(255,255,255,.05); --nd-pool:#2A93AE; --nd-poolTop:#4DB6CF; --nd-bench:#3E5A62; --nd-benchTop:#557178;
+  --nd-w1a:#1D4553; --nd-w1b:#163943; --nd-w2a:#3A4A3C; --nd-w2b:#2E3D34; --nd-w3a:#5A3C3A; --nd-w3b:#472F34; --nd-w4a:#1A2C48; --nd-w4b:#111E36;
+}
+.nd-wrap{position:relative}
+#drop.nd-on .well{background:transparent}
+.nd-stage{position:absolute;inset:0;border-radius:20px;overflow:hidden;pointer-events:none;background:var(--nd-w1b)}
+.nd-wall{position:absolute;inset:0;opacity:0;transition:opacity .9s}
+.nd-w1{opacity:1;background:linear-gradient(var(--nd-w1a),var(--nd-w1b))}
+.nd-w2{background:linear-gradient(var(--nd-w2a),var(--nd-w2b))}
+.nd-w3{background:linear-gradient(var(--nd-w3a),var(--nd-w3b))}
+.nd-w4{background:linear-gradient(var(--nd-w4a),var(--nd-w4b))}
+.nd-stage:not([data-step="1"]) .nd-w2,.nd-stage[data-step="3"] .nd-w3,.nd-stage[data-step="4"] .nd-w3,.nd-stage[data-step="4"] .nd-w4{opacity:1}
+.nd-tiles{position:absolute;inset:0;background-image:linear-gradient(var(--nd-grout) 2px,transparent 2px),linear-gradient(90deg,var(--nd-grout) 2px,transparent 2px);background-size:40px 40px}
+.nd-R{position:absolute;right:0;top:0;width:260px;height:250px}
+.nd-hbs{position:absolute;inset:0}
+.nd-left{position:absolute;left:0;top:0;width:230px;height:250px;transform-origin:0 0}
+.nd-L{position:absolute;left:0;top:0}
+.nd-sw{position:absolute;left:30px;top:23px;width:110px;height:132px}
+.nd-salty{display:block;overflow:visible}
+.nd-bench{position:absolute;left:0;right:0;bottom:0;height:12px;background:var(--nd-bench);border-top:3px solid var(--nd-benchTop)}
+.nd-pool{position:absolute;left:6px;right:6px;bottom:9px;height:17px;border-radius:10px 10px 0 0;background:var(--nd-pool);overflow:hidden;border:3px solid #2F4A52;border-bottom:0}
+.nd-wave{position:absolute;left:0;top:-1px;width:200%;animation:nd-wave 7s linear infinite}
+.nd-wave svg{display:block}
+.nd-pool.hit{animation:nd-hit .35s ease-out}
+.nd-arc{position:absolute;inset:0;overflow:visible;opacity:0}
+.nd-arc path{fill:none;stroke:#17323A;stroke-opacity:.55;stroke-width:4.5;stroke-linecap:round;stroke-dasharray:.1 10}
+.nd-arc.go{animation:nd-arc .45s ease-out}
+.nd-hold .nd-arc{animation:none;opacity:1}
+.nd-fx{position:absolute;left:0;top:0}
+.nd-pc{position:absolute;left:0;top:0;width:13px;height:13px;margin:-6px 0 0 -6px;opacity:0}
+.nd-pc.nd-drop{border-radius:50%;background:#9BE0EE;border:2.5px solid #167A90}
+.nd-rp{position:absolute;left:0;top:0;width:44px;height:11px;margin:-5px 0 0 -22px;border-radius:50%;border:3px solid #fff;opacity:0}
+.nd-pc.nd-salt{background:#fff;border:2px solid #17323A;transform:rotate(15deg)}
+.nd-glow{position:absolute;right:0;top:0;width:340px;height:240px;opacity:0;transition:opacity .9s;background:radial-gradient(ellipse 50% 75% at 35% 18%,rgba(255,214,120,.42),transparent 72%)}
+.nd-stage[data-step="4"] .nd-glow{opacity:1}
+.nd-chip{position:absolute;left:12px;top:234px;display:flex;align-items:center;gap:5px;padding:2px 11px 2px 7px;border-radius:999px;background:#17323A;border:2px solid #F2B630;color:#fff;font:800 15px/1.3 "Baloo 2","Atkinson Hyperlegible",sans-serif;white-space:nowrap}
+.nd-chip[hidden]{display:none}
+.nd-chip.pop{animation:nd-chip .4s cubic-bezier(.2,1.5,.4,1)}
+/* backdrop by level step (same steps as the music): morning, afternoon, sunset, night */
+.nd-sky{opacity:0;transition:opacity .9s}.nd-k1{opacity:1}
+.nd-stage[data-step="2"] .nd-k2,.nd-stage[data-step="3"] .nd-k3,.nd-stage[data-step="4"] .nd-k4{opacity:1}
+.nd-sun{transition:transform .9s,opacity .9s}
+.nd-stage[data-step="2"] .nd-sun{transform:translate(-10px,-6px)}
+.nd-stage[data-step="3"] .nd-sun{transform:translate(-12px,38px)}
+.nd-stage[data-step="4"] .nd-sun{transform:translate(-14px,40px);opacity:0}
+.nd-moon,.nd-stars,.nd-lit,.nd-wn4{opacity:0;transition:opacity .9s}
+.nd-stage[data-step="4"] .nd-moon,.nd-stage[data-step="4"] .nd-stars,.nd-stage[data-step="4"] .nd-lit{opacity:1}
+.nd-stage[data-step="4"] .nd-wn4{opacity:.45}
+.nd-cloud{transition:opacity .9s}
+.nd-stage[data-step="3"] .nd-cloud,.nd-stage[data-step="4"] .nd-cloud{opacity:.0}
+.nd-s2,.nd-s3,.nd-s4{opacity:0;transition:opacity .9s}
+.nd-stage:not([data-step="1"]) .nd-s2,.nd-stage[data-step="3"] .nd-s3,.nd-stage[data-step="4"] .nd-s3,.nd-stage[data-step="4"] .nd-s4{opacity:1}
+/* ambient loops (page elements, so they run on the graphics card): only while the step shows them */
+.nd-hb{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;border:1.5px solid rgba(47,74,82,.7);opacity:0}
+.nd-hb.nd-pf{width:11px;height:8px;margin:-4px 0 0 -5px;border-radius:50%}
+.nd-stage:not([data-step="1"]) .nd-b1{animation:nd-bub 2.4s ease-in infinite}
+.nd-stage[data-step="3"] .nd-b2,.nd-stage[data-step="4"] .nd-b2{animation:nd-bub 2.1s ease-in infinite}
+.nd-stage[data-step="3"] .nd-pf,.nd-stage[data-step="4"] .nd-pf{animation:nd-puff 3s ease-out infinite}
+/* Salty */
+.nd-sw .nd-e,.nd-sw .nd-m,.nd-sw .nd-sweat,.nd-sw .nd-orbitwrap{display:none}
+.nd-sw[data-s="idle"] .nd-e-i,.nd-sw[data-s="idle"] .nd-m-s,
+.nd-sw[data-s="toss"] .nd-e-i,.nd-sw[data-s="toss"] .nd-m-o,
+.nd-sw[data-s="cheer"] .nd-e-h,.nd-sw[data-s="cheer"] .nd-m-o,
+.nd-sw[data-s="wince"] .nd-e-w,.nd-sw[data-s="wince"] .nd-m-w,.nd-sw[data-s="wince"] .nd-sweat,
+.nd-sw[data-s="dizzy"] .nd-e-d,.nd-sw[data-s="dizzy"] .nd-m-w,.nd-sw[data-s="dizzy"] .nd-orbitwrap{display:inline}
+.nd-sw{transform-origin:50% 100%;animation:nd-bob 2.6s ease-in-out infinite}
+.nd-blink{transform-origin:46px 58px;transition:transform .05s}
+.nd-sw.blink .nd-blink{transform:scaleY(.12)}
+.nd-glint{transform-origin:24px 28px;transform:scale(.2);opacity:0;transition:transform .3s,opacity .3s}
+.nd-sw.glint .nd-glint{transform:scale(1);opacity:1}
+.nd-arm{transition:transform .14s ease-out}
+.nd-arm-l{transform-origin:12px 58px;transform:rotate(9deg)}
+.nd-arm-r{transform-origin:92px 54px;transform:rotate(-9deg)}
+.nd-body{transform-origin:48px 108px;transition:transform .14s ease-out}
+.nd-sw[data-s="toss"] .nd-arm-r{animation:nd-throw .45s ease-in both}
+.nd-sw[data-s="toss"] .nd-arm-l{transform:rotate(22deg)}
+.nd-sw[data-s="cheer"] .nd-arm-l{transform:rotate(158deg)}
+.nd-sw[data-s="cheer"] .nd-arm-r{transform:rotate(-158deg)}
+.nd-sw[data-s="cheer"]{animation:nd-hop .3s ease-out 2}
+.nd-sw[data-s="wince"] .nd-arm-l,.nd-sw[data-s="dizzy"] .nd-arm-l{transform:rotate(-28deg)}
+.nd-sw[data-s="wince"] .nd-arm-r,.nd-sw[data-s="dizzy"] .nd-arm-r{transform:rotate(28deg)}
+.nd-sw[data-s="wince"] .nd-body,.nd-sw[data-s="dizzy"] .nd-body{transform:scale(1.05,.93)}
+.nd-sw[data-s="dizzy"]{animation:nd-shake .3s linear 2}
+.nd-sw[data-s="wince"],.nd-sw[data-s="toss"]{animation:none}
+.nd-star{animation:nd-orb .6s linear infinite}.nd-o2{animation-delay:-.2s}.nd-o3{animation-delay:-.4s}
+/* the falling card: a quick pop when Salty tosses a new one (it never delays or moves the card) */
+#drop.nd-on .drop.nd-pop{animation:nd-pop .28s cubic-bezier(.2,1.4,.4,1)}
+@keyframes nd-pop{from{transform:translateX(-50%) scale(.8)}to{transform:translateX(-50%) scale(1)}}
+@keyframes nd-bob{50%{transform:scaleY(1.03)}}
+@keyframes nd-throw{0%{transform:rotate(-172deg)}35%{transform:rotate(-172deg)}100%{transform:rotate(-38deg)}}
+@keyframes nd-hop{50%{transform:translateY(-11px)}}
+@keyframes nd-shake{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@keyframes nd-orb{0%{transform:translate(30px,0)}25%{transform:translate(0,7px)}50%{transform:translate(-30px,0)}75%{transform:translate(0,-7px)}100%{transform:translate(30px,0)}}
+@keyframes nd-arc{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+@keyframes nd-chip{from{transform:scale(.6)}to{transform:scale(1)}}
+@keyframes nd-hit{40%{transform:translateY(3px)}}
+@keyframes nd-wave{to{transform:translateX(-50%)}}
+@keyframes nd-bub{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-22px);opacity:0}}
+@keyframes nd-puff{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:.8}100%{transform:translateY(-26px) scale(1.5);opacity:0}}
+/* narrow screens (phones): no right side, a smaller left corner, Salty leans in from the edge */
+@media (max-width:620px){
+  .nd-R{display:none}
+  .nd-glow{display:none}
+  .nd-left{transform:scale(.62);left:-14px}
+  .nd-poster,.nd-chip span{display:none}
+  .nd-chip{left:8px;top:100px;font-size:14px;padding:1px 9px 1px 6px}
+}
+/* the formula and answer colours the page uses in dark mode are too dark on the dark card: lighten the negative ion's colour (only while the scene is on) */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #drop.nd-on :is(.drop,.ans,.fb) .x{color:var(--an)}}
+:root[data-theme="dark"] #drop.nd-on :is(.drop,.ans,.fb) .x{color:var(--an)}
+/* ===== end NAME DROP SCENE ===== */
 </style>
 </head>
 <body>
@@ -514,6 +640,13 @@ const MUSIC_CFG = {
   INTRO_DUCK: 0.35      // music volume multiplier while a new-ion card is open (names are read aloud)
 };
 // Say my name has no music on purpose: it could confuse the mic.
+// =============================================================================
+// ======================== NAME DROP LOOK (safe to edit) ========================
+const ND_CFG = {
+  NAMEDROP_SCENE: true,  // true = Name drop is played in a little lab (bench, window, glassware, a tray the cards land in). false = the plain white box it used to be.
+  SALTY: true            // true = Salty, the lab tech, tosses each card in and reacts. false = the lab with no character. (Only matters when NAMEDROP_SCENE is true.)
+};
+// The lab changes with the level, on the same steps as the music: levels 1-3 morning, 4-6 afternoon, 7-9 sunset, 10+ night.
 // =============================================================================
 (() => {
 // ================= DATA =================
@@ -1238,7 +1371,7 @@ function renderDrop(){
       ?`<div class="drop nm${tap}" id="dropCard" style="top:${game.y}px"><div>${c.name}${c.hint?`<div class="hint">${ionHTML(c.cat)} and ${ionHTML(c.an)}</div>`:''}</div>${spk}</div>`
       :`<div class="drop${tap}" id="dropCard" style="top:${game.y}px">${fHTML(c.cat,c.an,c.a,c.b)}${spk}</div>`;
   }
-  $('well').innerHTML=h;
+  $('well').innerHTML=h;ndAfterRender();
   const A=$('answers');
   if(!c){A.innerHTML='';return}
   if(game.sub==='say'&&!game.sayTyped){
@@ -1294,7 +1427,7 @@ function win(){
   const mult={pick:1,type:2,formula:2,say:c.showName?1:2}[game.sub]*((c.cat.poly||c.an.poly)?1.5:1);
   const pts=pt(Math.round((10+game.level*2+frac*10)*mult*(c.usedHint?.5:1)));
   game.score+=pts;addCoins(pts);record(c.cat.c,-c.an.c);game.right++;sfx.good();tally('drop-'+game.sub,true);
-  $('dropCard')?.classList.add('right');
+  $('dropCard')?.classList.add('right');ndWin();
   if(game.sub==='type'||game.sub==='say'){const f=$('fb');if(f){f.textContent=`${c.name}  +${pts}`;f.className='fb good'}}
   if(game.right%5===0)levelUp(game.sub==='say'&&game.level+1===SAY_NAME_LEVELS+1?': formulas only':'');
   setTimeout(nextDrop,700);
@@ -1307,7 +1440,7 @@ function answer(i){
 }
 function miss(i,landed,typed){
   const c=game.cur;game.answered=true;sfx.bad();tally('drop-'+game.sub,false,c.name);
-  $('dropCard')?.classList.add('wrong');
+  $('dropCard')?.classList.add('wrong');ndMiss(landed);
   if(game.sub==='say'){
     const f=$('fb');f.className='fb bad';
     f.innerHTML=`${typed?'Not quite. ':'Time. '}It's ${esc(c.name)}.<button class="spk" data-say aria-label="Hear the name">🔊</button>`;
@@ -1340,6 +1473,168 @@ $('drop').addEventListener('click',e=>{
   if(!game||game.kind!=='drop'||game.sub!=='say'||!game.cur)return;
   if(e.target.closest('[data-say]')||(e.target.closest('#dropCard')&&(!game.timed||game.answered)))speakName(game.cur.name);
 });
+
+// ===== NAME DROP SCENE (nd-) : JS =====
+// Draws the lab behind the falling cards and Salty, the lab tech who tosses them in.
+// It never touches the game: it only draws, and the game calls it from four one-line hooks
+// (renderDrop, win, miss). Turn it off with NAMEDROP_SCENE in the NAME DROP LOOK settings.
+const ND_INK='#17323A',ND_GLASS='rgba(255,255,255,.62)',ND_LINE='#2F4A52';
+const ndReduced=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}};
+function ndFlask(x,y,col,k=1){ // small decorative flask
+  return `<g transform="translate(${x} ${y}) scale(${k})"><path d="M11 2h8v10l9.5 18.5a4 4 0 0 1-3.5 5.5H5a4 4 0 0 1-3.5-5.5L11 12z" fill="${ND_GLASS}" stroke="${ND_LINE}" stroke-width="2.4" stroke-linejoin="round"/>`+
+    `<path d="M4.4 27h21.2l3 5.8a2.6 2.6 0 0 1-2.3 3.8H3.7a2.6 2.6 0 0 1-2.3-3.8z" fill="${col}"/><path d="M9.5 2h11" stroke="${ND_LINE}" stroke-width="3" stroke-linecap="round"/>`+`</g>`;
+}
+function ndBeaker(x,y,col,k=1,extra=''){
+  return `<g transform="translate(${x} ${y}) scale(${k})"><path d="M3 3v28a4 4 0 0 0 4 4h14a4 4 0 0 0 4-4V3" fill="${ND_GLASS}" stroke="${ND_LINE}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`+
+    `<path d="M4.2 17h19.6v14a3 3 0 0 1-3 3H7.2a3 3 0 0 1-3-3z" fill="${col}"/><path d="M4.2 17h19.6" stroke="#fff" stroke-width="2" opacity=".7"/>${extra}</g>`;
+}
+function ndPoster(){ // a tiny periodic-table poster: only coloured blocks, no text to read
+  const rows=[[1,0,0,0,0,0,0,1],[1,1,0,0,2,2,2,3],[1,1,0,0,2,2,2,3],[1,1,4,4,4,4,4,2]];
+  const fill=['','#E85A4F','#2BB3CF','#F2B630','#8FB5C0'];let s='';
+  rows.forEach((r,j)=>r.forEach((v,i)=>{if(v)s+=`<rect x="${6+i*10.5}" y="${19+j*9.5}" width="9" height="8" rx="1.5" fill="${fill[v]}"/>`}));
+  return `<rect x="0" y="0" width="94" height="62" rx="5" fill="#FFFFFF" stroke="${ND_LINE}" stroke-width="2.5"/><rect x="6" y="6" width="50" height="7" rx="3" fill="${ND_INK}"/><rect x="60" y="6" width="9" height="7" rx="3" fill="#F2B630"/>${s}`;
+}
+function ndSky(){
+  return `<clipPath id="nd-cw"><rect x="0" y="0" width="92" height="78" rx="4"/></clipPath><g clip-path="url(#nd-cw)">`+
+    `<rect class="nd-sky nd-k1" width="92" height="78" fill="#BDE8F7"/><rect class="nd-sky nd-k2" width="92" height="78" fill="#FFE1A0"/>`+
+    `<rect class="nd-sky nd-k3" width="92" height="78" fill="#F7A072"/><rect class="nd-sky nd-k4" width="92" height="78" fill="#1D2A5C"/>`+
+    `<circle class="nd-sun" cx="62" cy="22" r="10" fill="#F2B630" stroke="#E0951C" stroke-width="2"/>`+
+    `<g class="nd-moon"><circle cx="64" cy="20" r="9" fill="#FFF6D6"/><circle cx="68" cy="17" r="8" fill="#1D2A5C"/></g>`+
+    `<g class="nd-stars"><path d="M14 14l1.6 3.4 3.4 1.6-3.4 1.6L14 24l-1.6-3.4L9 19l3.4-1.6z" fill="#fff"/><circle cx="40" cy="10" r="1.6" fill="#fff"/><circle cx="80" cy="40" r="1.4" fill="#fff"/><circle cx="30" cy="34" r="1.3" fill="#fff"/></g>`+
+    `<g class="nd-cloud"><ellipse cx="22" cy="24" rx="12" ry="5" fill="#fff"/><ellipse cx="30" cy="20" rx="8" ry="5.5" fill="#fff"/><ellipse cx="68" cy="40" rx="10" ry="4" fill="#fff" opacity=".9"/></g>`+
+    `<path d="M0 78V58h9V48h12v12h8V52h10v-8h12v16h9V50h10v28z" fill="#6F8F99"/><path d="M0 78V66h18v-8h9v8h17V62h14v-6h10v10h24v12z" fill="#4F6C72"/>`+
+    `<rect class="nd-wn4" width="92" height="78" fill="#0B1236" opacity="0"/>`+
+    `<g class="nd-lit" fill="#FFD36B"><rect x="14" y="52" width="3" height="3"/><rect x="34" y="55" width="3" height="3"/><rect x="62" y="51" width="3" height="3"/><rect x="74" y="58" width="3" height="3"/></g></g>`;
+}
+function ndSaltyHTML(){
+  const E=ND_INK;
+  return `<svg class="nd-salty" viewBox="0 0 100 120" width="110" height="132" aria-hidden="true">`+
+  `<ellipse cx="48" cy="114" rx="32" ry="4" fill="rgba(0,0,0,.2)"/>`+
+  `<g class="nd-hop"><g class="nd-body"><g class="nd-bob">`+
+    // legs and mismatched shoes: red left (cation colour), teal right (anion colour)
+    `<rect x="27" y="88" width="13" height="18" rx="5" fill="#E8F3F7" stroke="${E}" stroke-width="3"/><rect x="52" y="88" width="13" height="18" rx="5" fill="#E8F3F7" stroke="${E}" stroke-width="3"/>`+
+    `<path d="M21 106h21a5 5 0 0 1 5 5v1H18v-1a3 3 0 0 1 3-5z" fill="#E85A4F" stroke="${E}" stroke-width="3" stroke-linejoin="round"/><path d="M50 106h21a3 3 0 0 1 3 5v1H45v-1a5 5 0 0 1 5-5z" fill="#2BB3CF" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    // the crystal: a cube
+    `<path d="M74 36L88 24V80L74 92z" fill="#C9E4EE" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    `<path d="M18 36L32 24H88L74 36z" fill="#EAF7FB" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    `<rect x="18" y="36" width="56" height="56" rx="4" fill="#FFFFFF" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    `<circle cx="81" cy="46" r="3.4" fill="#E85A4F"/><circle cx="81" cy="58" r="3.4" fill="#2BB3CF"/><circle cx="81" cy="70" r="3.4" fill="#E85A4F"/>`+
+    `<path d="M23 42h8M23 42v8" stroke="#BFE3EE" stroke-width="3" stroke-linecap="round"/>`+
+    // goggles
+    `<path d="M18 57h8M66 57h8" stroke="#167A90" stroke-width="5" stroke-linecap="round"/><circle cx="35" cy="57" r="10.5" fill="#EAFBFF" stroke="#167A90" stroke-width="3.5"/><circle cx="57" cy="57" r="10.5" fill="#EAFBFF" stroke="#167A90" stroke-width="3.5"/><path d="M45 57h2" stroke="#167A90" stroke-width="4"/>`+
+    // eyes
+    `<g class="nd-e nd-e-i"><g class="nd-blink"><ellipse cx="35" cy="58" rx="3.3" ry="4.2" fill="${E}"/><ellipse cx="57" cy="58" rx="3.3" ry="4.2" fill="${E}"/><circle cx="36.2" cy="56.4" r="1.2" fill="#fff"/><circle cx="58.2" cy="56.4" r="1.2" fill="#fff"/></g></g>`+
+    `<g class="nd-e nd-e-h" fill="none" stroke="${E}" stroke-width="2.8" stroke-linecap="round"><path d="M29.5 60q5.5-8 11 0"/><path d="M51.5 60q5.5-8 11 0"/></g>`+
+    `<g class="nd-e nd-e-w" fill="none" stroke="${E}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M30.5 52.5l9 5.5-9 5.5"/><path d="M61.5 52.5l-9 5.5 9 5.5"/></g>`+
+    `<g class="nd-e nd-e-d" fill="none" stroke="${E}" stroke-width="1.9" stroke-linecap="round"><path d="M35 58a1.4 1.4 0 1 1 2.8 0a3 3 0 1 1-6 0a4.6 4.6 0 1 1 9.2 0"/><path d="M57 58a1.4 1.4 0 1 1 2.8 0a3 3 0 1 1-6 0a4.6 4.6 0 1 1 9.2 0"/></g>`+
+    `<circle cx="27" cy="73" r="4" fill="#FF8FA3" opacity=".6"/><circle cx="65" cy="73" r="4" fill="#FF8FA3" opacity=".6"/>`+
+    // mouths
+    `<path class="nd-m nd-m-s" d="M38 74q8 8 16 0" fill="none" stroke="${E}" stroke-width="3" stroke-linecap="round"/>`+
+    `<g class="nd-m nd-m-o"><path d="M37 72.5Q46 90 55 72.5z" fill="${E}" stroke="${E}" stroke-width="2.4" stroke-linejoin="round"/><path d="M41.5 80Q46 76.5 50.5 80Q46 85 41.5 80z" fill="#FF8FA3"/></g>`+
+    `<path class="nd-m nd-m-w" d="M37 78q2.75-4.5 5.5 0t5.5 0 5.5 0" fill="none" stroke="${E}" stroke-width="2.8" stroke-linecap="round"/>`+
+    `<path class="nd-sweat" d="M70 38q-4.5 6.5-4.5 9.5a4.5 4.5 0 0 0 9 0q0-3-4.5-9.5z" fill="#8EDCEB" stroke="#167A90" stroke-width="2"/>`+
+    // arms: white sleeves, blue lab gloves
+    `<g class="nd-arm nd-arm-l"><rect x="7" y="56" width="10" height="23" rx="5" fill="#fff" stroke="${E}" stroke-width="3"/><circle cx="12" cy="82" r="7" fill="#2BB3CF" stroke="#167A90" stroke-width="3"/></g>`+
+    `<g class="nd-arm nd-arm-r"><rect x="87" y="52" width="10" height="23" rx="5" fill="#fff" stroke="${E}" stroke-width="3"/><circle cx="92" cy="78" r="7" fill="#2BB3CF" stroke="#167A90" stroke-width="3"/></g>`+
+    `<path class="nd-glint" d="M20 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fff" stroke="#8EDCEB" stroke-width="1.5" stroke-linejoin="round"/>`+
+  `</g></g>`+
+  `<g class="nd-orbitwrap" transform="translate(48 14)"><path class="nd-star nd-o1" d="M0-8L2.4-2.4 8 0 2.4 2.4 0 8-2.4 2.4-8 0-2.4-2.4z" fill="#F2B630" stroke="#A7790F" stroke-width="1.6" stroke-linejoin="round"/><path class="nd-star nd-o2" d="M0-8L2.4-2.4 8 0 2.4 2.4 0 8-2.4 2.4-8 0-2.4-2.4z" fill="#F2B630" stroke="#A7790F" stroke-width="1.6" stroke-linejoin="round"/><path class="nd-star nd-o3" d="M0-8L2.4-2.4 8 0 2.4 2.4 0 8-2.4 2.4-8 0-2.4-2.4z" fill="#F2B630" stroke="#A7790F" stroke-width="1.6" stroke-linejoin="round"/></g>`+
+  `</g></svg>`;
+}
+function ndSceneHTML(salty){
+  const win=`<g transform="translate(150 18)"><rect x="-5" y="-5" width="102" height="88" rx="8" fill="#8FA7AE" stroke="${ND_LINE}" stroke-width="3"/>${ndSky()}<path d="M46 0v78M0 39h92" stroke="${ND_LINE}" stroke-width="3.5" opacity=".8"/><rect x="-9" y="80" width="110" height="9" rx="3" fill="#B98A5B" stroke="#7A5632" stroke-width="2.5"/></g>`;
+  const clock=`<g transform="translate(110 52)"><circle r="16" fill="#fff" stroke="${ND_LINE}" stroke-width="3"/><path d="M0 0V-9M0 0L6 4" stroke="${ND_INK}" stroke-width="2.6" stroke-linecap="round"/><circle r="1.8" fill="${ND_INK}"/></g>`;
+  const shelf=(y,x1,x2)=>`<rect x="${x1}" y="${y}" width="${x2-x1}" height="9" rx="3" fill="#B98A5B" stroke="#7A5632" stroke-width="2.5"/><path d="M${x1+10} ${y+9}v14l12-14zM${x2-22} ${y+9}v14l12-14z" fill="#8A9AA0" stroke="#475A60" stroke-width="2" stroke-linejoin="round"/>`;
+  const hb=(c,x,y,d)=>`<i class="nd-hb ${c}" style="left:${x}px;top:${y}px;animation-delay:${d}s"></i>`;
+  const right=`<div class="nd-R"><svg viewBox="0 0 260 250" width="260" height="250" aria-hidden="true">`+win+clock+
+    shelf(140,118,252)+ndFlask(128,104,'#E85A4F',1)+ndBeaker(168,106,'#2BB3CF',1)+
+    `<g class="nd-s2">${ndFlask(212,102,'#F2B630',1.05)}</g>`+
+    `<g class="nd-s3">${shelf(196,140,252)}${ndFlask(150,162,'#2E9E5B',1)}${ndBeaker(196,164,'#2BB3CF',1)}${ndFlask(222,160,'#E85A4F',.9)}</g>`+
+    `<g class="nd-s4"><path d="M44 0v34" stroke="${ND_LINE}" stroke-width="3"/><path d="M28 56a16 18 0 0 1 32 0z" fill="#F2B630" stroke="#A7790F" stroke-width="3" stroke-linejoin="round"/><circle cx="44" cy="58" r="5" fill="#FFF1B8"/></g></svg>`+
+    // rising bubbles and steam are plain page elements (they animate on the graphics card; animated SVG parts would not)
+    `<div class="nd-s2 nd-hbs">${hb('nd-b1',224,128,0)+hb('nd-b1',230,132,.8)+hb('nd-b1',227,130,1.5)}</div>`+
+    `<div class="nd-s3 nd-hbs">${hb('nd-b2',162,189,.3)+hb('nd-b2',168,192,1)+hb('nd-b2',165,190,1.7)+hb('nd-pf',208,156,0)+hb('nd-pf',214,157,1.4)}</div></div>`;
+  const left=`<div class="nd-left"><svg class="nd-L" viewBox="0 0 230 250" width="230" height="250" aria-hidden="true">`+
+    shelf(146,10,192)+
+    `<g transform="translate(152 146) scale(1.15)"><path d="M-20-28h40l-3 28h-34z" fill="#C79A66" stroke="#7A5632" stroke-width="2.5" stroke-linejoin="round"/><path d="M-16-14h32" stroke="#7A5632" stroke-width="2"/><path d="M-19-26q8-14 19-14t19 14z" fill="#fff" stroke="${ND_LINE}" stroke-width="2.4" stroke-linejoin="round"/><path d="M-8-33l3-3 3 3zM5-35l3-3 3 3z" fill="#BFE3EE"/></g>`+
+    `<g class="nd-poster" transform="translate(40 166)">${ndPoster()}</g></svg>`+
+    (salty?`<div class="nd-sw" data-s="idle">${ndSaltyHTML()}</div>`:'')+`</div>`;
+  const lamp=`<div class="nd-glow"></div>`;
+  return `<div class="nd-wall nd-w1"></div><div class="nd-wall nd-w2"></div><div class="nd-wall nd-w3"></div><div class="nd-wall nd-w4"></div><div class="nd-tiles"></div>`+
+    right+left+lamp+
+    `<div class="nd-bench"></div><div class="nd-pool"><div class="nd-wave"><svg viewBox="0 0 400 14" preserveAspectRatio="none" width="100%" height="14"><path d="M0 7q25-9 50 0t50 0 50 0 50 0 50 0 50 0 50 0 50 0V14H0z" fill="var(--nd-poolTop)"/></svg></div></div>`+
+    `<svg class="nd-arc" width="100%" height="100%"><path d="M0 0"/></svg><div class="nd-fx"></div>`+
+    `<div class="nd-chip" hidden><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 1.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L10 14.8l-5.3 2.9 1.1-5.9L1.5 7.7l5.9-.8z" fill="#F2B630" stroke="#F2B630" stroke-width="1.6" stroke-linejoin="round"/></svg><b></b><span> in a row</span></div>`;
+}
+// Builds the scene next to #well (the well keeps all the game's elements; the scene sits behind it).
+function ndMount(well,withSalty){
+  const sec=well.closest('.screen')||well.parentNode,wrap=document.createElement('div'),stage=document.createElement('div');
+  wrap.className='nd-wrap';stage.className='nd-stage';stage.dataset.step='1';stage.setAttribute('aria-hidden','true');
+  stage.innerHTML=ndSceneHTML(withSalty!==false);
+  well.parentNode.insertBefore(wrap,well);wrap.appendChild(stage);wrap.appendChild(well);sec.classList.add('nd-on');
+  const salty=stage.querySelector('.nd-sw'),chip=stage.querySelector('.nd-chip'),fx=stage.querySelector('.nd-fx'),arc=stage.querySelector('.nd-arc path'),arcSvg=stage.querySelector('.nd-arc');
+  let pt=0,fxT=0,chipT=0;const P=[],R=[];for(let i=0;i<12;i++){const e=document.createElement('i');fx.appendChild(e);P.push(e)}
+  for(let i=0;i<2;i++){const e=document.createElement('i');e.className='nd-rp';fx.appendChild(e);R.push(e)}
+  const rel=el=>{const a=el.getBoundingClientRect(),b=stage.getBoundingClientRect();return{x:a.left-b.left,y:a.top-b.top,w:a.width,h:a.height,cx:a.left-b.left+a.width/2,b:a.top-b.top+a.height}};
+  if(salty&&!ndReduced()){let n=0;const iv=setInterval(()=>{if(!stage.isConnected){clearInterval(iv);return}if(!stage.offsetParent||salty.dataset.s!=='idle')return;n++;
+    if(n%5===0){salty.classList.add('blink');setTimeout(()=>salty.classList.remove('blink'),150)}
+    if(n%8===3){salty.classList.add('glint');setTimeout(()=>salty.classList.remove('glint'),800)}},800)}
+  const C={stage,
+    step(n){if(stage.dataset.step!==String(n))stage.dataset.step=n},
+    pose(s,ms,rest){if(!salty)return;salty.dataset.s=s;clearTimeout(pt);if(ms)pt=setTimeout(()=>{salty.dataset.s=rest||'idle'},ms)},
+    reset(){C.pose('idle');C.streak(0);P.concat(R).forEach(e=>{e.style.opacity=0})},
+    // particles: kind 'drop' (round splash), 'salt' (little white crystals); hold = leave them in place (for pictures)
+    burst(x,y,kind,spread,hold,w){ // w = card width: splash comes off both sides of the card
+      clearTimeout(fxT);const still=hold||ndReduced(),side=w!=null;
+      P.forEach((e,i)=>{
+        const left=i%2===0,k=(i>>1)/((P.length>>1)),a=side?(left?-Math.PI*(.62-.4*k):-Math.PI*(.38+.4*k)):-Math.PI*(.12+.76*(i/(P.length-1))),
+          r=(30+((i*7)%5)*11)*spread,dx=Math.cos(a)*r*(side?1.1:1.4),dy=Math.sin(a)*r,ox=side?(left?-w/2:w/2):0,x0=x+ox;
+        e.className=kind==='salt'?'nd-pc nd-salt':'nd-pc nd-drop';e.style.opacity=0;
+        if(still){e.style.transform=`translate(${x0+dx*.8}px,${y+dy*.8}px) scale(.9)`;e.style.opacity=.95;if(e.getAnimations)e.getAnimations().forEach(an=>an.cancel())}
+        else if(e.animate)e.animate([{transform:`translate(${x0}px,${y}px)`,opacity:1},{transform:`translate(${x0+dx*.7}px,${y+dy*.7-8}px) scale(1)`,opacity:1,offset:.5},{transform:`translate(${x0+dx}px,${y+dy+10}px) scale(.5)`,opacity:0}],{duration:560,delay:i*10,easing:'ease-out'});
+      });
+      if(side){const py=stage.clientHeight-30;R.forEach((e,i)=>{const px=x+(i?w/2+26:-w/2-26);
+        if(still){e.style.transform=`translate(${px}px,${py}px) scaleX(1.3)`;e.style.opacity=.9}
+        else if(e.animate)e.animate([{transform:`translate(${px}px,${py}px) scaleX(.3)`,opacity:.95},{transform:`translate(${px}px,${py}px) scaleX(1.6)`,opacity:0}],{duration:600,easing:'ease-out'})})}
+      if(still&&!hold)fxT=setTimeout(()=>{P.forEach(e=>{e.style.opacity=0});R.forEach(e=>{e.style.opacity=0})},500);
+    },
+    toss(card,hold){
+      C.pose('toss',hold?0:450,'idle');
+      if(!salty||!card)return;
+      const s=rel(salty),c=rel(card),sx=s.x+s.w*.98,sy=s.y+s.h*.2,ex=c.x+4,ey=c.y+c.h*.5;
+      arc.setAttribute('d',`M${sx} ${sy}Q${(sx+ex)/2} ${Math.min(sy,ey)-36} ${ex} ${ey}`);
+      arcSvg.classList.remove('go');void arcSvg.getBoundingClientRect();arcSvg.classList.add('go');
+      stage.classList.toggle('nd-hold',!!hold);
+    },
+    cheer(card,n,hold){
+      C.pose('cheer',hold?0:600,'idle');C.streak(n);
+      if(card){const c=rel(card);C.burst(c.cx,c.y+c.h*.5,'salt',1.35,hold)}
+    },
+    miss(card,landed,hold){
+      if(landed&&card){const c=rel(card);C.pose('dizzy',hold?0:600,'wince');C.burst(c.cx,c.b-4,'drop',1.5,hold,c.w);C.splash()}
+      else C.pose('wince');
+      C.streak(0);
+    },
+    splash(){const p=stage.querySelector('.nd-pool');p.classList.remove('hit');void p.offsetWidth;p.classList.add('hit')},
+    streak(n){
+      if(!chip)return;clearTimeout(chipT);
+      if(n<3){chip.hidden=true;return}
+      chip.querySelector('b').textContent=n;chip.hidden=false;chip.classList.remove('pop');void chip.offsetWidth;chip.classList.add('pop');
+    }};
+  return C;
+}
+// ----- the only code that talks to the game (called from the hooks in renderDrop, win and miss) -----
+let ndC=null,ndGame=null,ndCard=null,ndRun=0;
+function ndAfterRender(){
+  if(!ND_CFG.NAMEDROP_SCENE||!game)return;
+  if(!ndC)ndC=ndMount($('well'),ND_CFG.SALTY);
+  if(ndGame!==game){ndGame=game;ndCard=null;ndRun=0;ndC.reset()}
+  ndC.step(Math.min(4,1+Math.floor((game.level-1)/MUSIC_CFG.LEVELS_PER_STEP))); // same level steps as the music
+  if(game.cur&&game.cur!==ndCard){ndCard=game.cur;const el=$('dropCard');if(el)el.classList.add('nd-pop');ndC.toss(el)}
+}
+function ndWin(){if(ndC&&game){ndRun++;ndC.cheer($('dropCard'),ndRun)}}
+function ndMiss(landed){if(ndC&&game){ndRun=0;ndC.miss($('dropCard'),landed)}}
+// ===== end NAME DROP SCENE : JS =====
 
 // ================= MUSIC (Charge Command) =================
 // A light, tense loop made on the fly: minor bass pulse, soft arpeggio, ticking hats. Speeds up with the level.
