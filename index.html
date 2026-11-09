@@ -318,6 +318,51 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 /* ===== NAME DROP SCENE (nd-) ===== */
 /* Only applies when the script adds .nd-on to #drop (NAMEDROP_SCENE: true). All motion is transform/opacity.
    prefers-reduced-motion is handled by the page-wide rule that already stops every animation and transition. */
+/* ===== SCENE (nd-scene) ===== */
+/* Taller field (about 20% on computers; phones keep the old height). The fall speed is reset in JS so the time to land does not change. */
+#well{height:clamp(300px,55.2vh,528px)}
+@media (max-width:620px){#well{height:clamp(300px,46vh,440px)}}
+/* win back room under the field so every answer still fits on a 1366x650 Chromebook screen */
+#drop .answers{margin-top:8px;gap:8px}
+#drop .ans.f{padding-top:6px;padding-bottom:6px}
+#drop .fb{margin-top:6px}
+#drop .fb:empty+#hintBtn{margin-top:-28px}
+/* the missed-card bars become waste labels stuck on the pile (the pile itself is drawn behind the field) */
+#drop.nd-on .stackrow{left:50%;right:auto;transform:translateX(-50%);height:28px;margin-bottom:6px;max-width:calc(100% - 20px);padding:0 10px 0 30px;gap:7px;border-radius:7px;border:2.5px solid #17323A;color:#17323A;font-size:14px;white-space:nowrap;overflow:hidden;
+  background:#FFF6D6 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 18'%3E%3Cpath d='M10 1.5L18.5 16.5H1.5z' fill='%23F2B630' stroke='%2317323A' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M10 6.5v5' stroke='%2317323A' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='14' r='1.2' fill='%2317323A'/%3E%3C/svg%3E") 7px 50%/18px 16px no-repeat}
+#drop.nd-on .stackrow b{font-size:17px}
+.nds-pile{position:absolute;left:3px;right:3px;bottom:3px;height:260px;pointer-events:none}
+.nds-layer{position:absolute;left:0;right:0;transform-origin:50% 100%}
+.nds-layer svg{display:block;overflow:visible}
+.nds-layer.nds-new{animation:nds-plop .5s cubic-bezier(.3,1.5,.5,1)}
+.nds-sign{position:absolute;width:72px;height:64px;transform-origin:50% 100%;animation:nds-sway 3.2s ease-in-out infinite}
+.nds-sign svg{display:block}
+.nds-bub{position:absolute;left:0;right:0;height:0}
+.nds-bub i{position:absolute;top:0;width:9px;height:9px;margin-left:-4px;border-radius:50%;border:2px solid #4F6C72;background:rgba(255,255,255,.55);opacity:0;animation:nds-bub 2.7s ease-in infinite}
+.nd-stage[data-pile]:not([data-pile="0"]) .nd-rp{display:none}  /* no water ripples once the pool is buried */
+.stat.nds-warn{border-color:var(--bad);padding-left:30px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 18'%3E%3Cpath d='M10 1.5L18.5 16.5H1.5z' fill='%23F2B630' stroke='%2317323A' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M10 6.5v5' stroke='%2317323A' stroke-width='2.2' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='14' r='1.2' fill='%2317323A'/%3E%3C/svg%3E") 8px 50%/18px 16px no-repeat}
+/* window: Twin Peaks and Sutro Tower. Sun moves with the time of day; fog drifts in the morning and at sunset; red tower lights blink slowly at night. */
+.nds-sun{transition:transform .9s,opacity .9s;opacity:.85}
+.nd-stage[data-step="2"] .nds-sun{transform:translate(8px,-10px);opacity:1}
+.nd-stage[data-step="3"] .nds-sun{transform:translate(14px,15px);opacity:1}
+.nd-stage[data-step="4"] .nds-sun{transform:translate(4px,30px);opacity:0}
+.nds-dusk{transition:opacity .9s}
+.nd-stage[data-step="3"] .nds-dusk{opacity:.2}
+.nds-fog{position:absolute;left:150px;top:18px;width:92px;height:78px;border-radius:4px;overflow:hidden}
+.nds-fs{position:absolute;left:0;top:0;opacity:0;transition:opacity .9s;animation:nds-drift 48s linear infinite}
+.nds-f1b{animation-duration:70s;animation-direction:reverse}
+.nd-stage[data-step="1"] .nds-f1,.nd-stage[data-step="3"] .nds-f3{opacity:1}
+.nds-mv,.nds-mh{position:absolute;background:#2F4A52}
+.nds-mv{left:44.25px;top:0;width:3.5px;height:78px}
+.nds-mh{left:0;top:37.25px;width:92px;height:3.5px}
+.nds-lt{position:absolute;width:3.5px;height:3.5px;margin:-1.75px 0 0 -1.75px;border-radius:50%;background:#FF4A3A;box-shadow:0 0 0 1.5px rgba(255,74,58,.35);opacity:0;transition:opacity .9s}
+.nd-stage[data-step="4"] .nds-lt{opacity:1;animation:nds-blink 3.2s ease-in-out infinite}
+@keyframes nds-plop{0%{transform:translateY(-34px) scaleY(.7);opacity:0}45%{opacity:1}70%{transform:translateY(0) scaleY(.88)}100%{transform:none}}
+@keyframes nds-sway{50%{transform:rotate(3deg)}}
+@keyframes nds-bub{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:.9}100%{transform:translateY(-26px) scale(1);opacity:0}}
+@keyframes nds-drift{to{transform:translateX(-92px)}}
+@keyframes nds-blink{0%,100%{opacity:1}50%{opacity:.25}}
+/* ===== end SCENE (nd-scene) ===== */
 .nd-stage{
   --nd-grout:rgba(23,50,58,.07); --nd-pool:#5CC4DB; --nd-poolTop:#9BE0EE; --nd-bench:#6F8389; --nd-benchTop:#8CA1A7;
   --nd-w1a:#DDF1F4; --nd-w1b:#C5E6E6; --nd-w2a:#F4EFCF; --nd-w2b:#E7E2BA; --nd-w3a:#F6D8C4; --nd-w3b:#EEC3B4; --nd-w4a:#34506C; --nd-w4b:#24405A;
@@ -668,6 +713,10 @@ const MUSIC_CFG = {
   INTRO_DUCK: 0.35      // music volume multiplier while a new-ion card is open (names are read aloud)
 };
 // Say my name has no music on purpose: it could confuse the mic.
+// =============================================================================
+// ======================== NAME DROP TIMING (safe to edit) ========================
+const ND_FALL_TIME_SCALE = 1.0; // time for a card to fall in Name drop. 1.0 = same as before. 1.1 = 10% more time to answer. 0.9 = 10% less.
+// The fall speed comes from the field's real height, so making the field taller or shorter never changes the time.
 // =============================================================================
 // ======================== NAME DROP LOOK (safe to edit) ========================
 const ND_CFG = {
@@ -1475,7 +1524,7 @@ function renderDrop(){
       ?`<div class="drop nm${tap}" id="dropCard" style="top:${game.y}px"><div>${c.name}${c.hint?`<div class="hint">${ionHTML(c.cat)} and ${ionHTML(c.an)}</div>`:''}</div>${spk}</div>`
       :`<div class="drop${tap}" id="dropCard" style="top:${game.y}px">${fHTML(c.cat,c.an,c.a,c.b)}${spk}</div>`;
   }
-  $('well').innerHTML=h;ndAfterRender();
+  $('well').innerHTML=h;ndAfterRender();ndsAfterRender();
   const A=$('answers');
   if(!c){A.innerHTML='';return}
   if(game.sub==='say'&&!game.sayTyped){
@@ -1578,6 +1627,137 @@ $('drop').addEventListener('click',e=>{
   if(e.target.closest('[data-say]')||(e.target.closest('#dropCard')&&(!game.timed||game.answered))){const c=game.cur;speakName(c.name,()=>game&&game.cur===c)}
 });
 
+// ===== SCENE (nd-scene) =====
+// Three things for Name drop: (1) fall timing that stays the same when the field's height changes,
+// (2) the chemical-waste pile that grows at the bottom of the field after each miss (it replaces the red bars),
+// (3) the window view: Twin Peaks and Sutro Tower, with fog in the morning and at sunset.
+// The game calls ndsAfterRender() once from renderDrop. Nothing here changes rules or scoring.
+
+// (1) Timing. The level times in DUR were set on the original field (clamp(300px, 46vh, 440px) tall).
+// The game works out the speed from the field's height; here it is reset so each card takes exactly as long
+// to land as it did on the original field, at every level, mode and screen size, then ND_FALL_TIME_SCALE is applied.
+const ndsRefH=()=>Math.min(440,Math.max(300,innerHeight*.46))-6; // inside height of the original field on this screen
+let ndsT=null;
+function ndsTime(){
+  if(!game||game.kind!=='drop'||!game.cur||game.answered||!(game.speed>0))return;
+  const el=$('dropCard'),h=el?el.offsetHeight:60,fl=wellFloor(),k=ND_FALL_TIME_SCALE>0?ND_FALL_TIME_SCALE:1;
+  if(!ndsT||ndsT.c!==game.cur){ // a new card: nextDrop just set speed = (floor - 8) / time
+    const ref=ndsRefH()-game.stack.length*ROW-8,dur=Math.max(10,fl-8)/game.speed;
+    ndsT={c:game.cur,ref,v:Math.max(10,ref-8)/dur,ym:game.y,y:game.y};
+  }else ndsT.ym+=(game.y-ndsT.y)/game.speed/k*ndsT.v; // how far it would be on the original field by now
+  const left=Math.max(0,ndsT.ref-h-ndsT.ym)/ndsT.v*k;  // ms until it would land on the original field
+  game.speed=left>0?Math.max(1e-6,fl-h-game.y)/left:1e3;
+  ndsT.y=game.y;
+}
+
+// (3) The window: 92 x 78. Morning fog over the hills, afternoon sun, sunset with fog coming back in, night with tower lights.
+function ndSky(){
+  const L=ND_LINE;
+  const tw=(d,w)=>`<path d="${d}" stroke="${L}" stroke-width="${w+1.6}"/><path d="${d}" stroke="#fff" stroke-width="${w}"/>`;
+  const legs='M62 58Q69 40 72 27M74 58V27M86 58Q79 40 76 27',masts='M72 27L68 5M74 27V3M76 27L80 5';
+  const houses=[[0,68,8,'#F4E9D8'],[8,66,7,'#E8C9B0'],[15,69,8,'#CFE0E8'],[23,67,7,'#F2D6DE'],[30,70,8,'#F4E9D8'],[38,68,7,'#D9E8C8'],[45,66,8,'#E8C9B0'],[53,69,7,'#CFE0E8'],[60,67,8,'#F2D6DE'],[68,70,7,'#F4E9D8'],[75,67,8,'#D9E8C8'],[83,69,9,'#E8C9B0']];
+  let hs='',lit='';
+  houses.forEach(([x,y,w,c],i)=>{hs+=`<path d="M${x} 78V${y+2}l${w/2} -2.5 ${w/2} 2.5V78z" fill="${c}" stroke="${L}" stroke-width=".9"/><rect x="${x+w/2-1.2}" y="${y+4}" width="2.4" height="2.4" fill="#4F6C72"/>`;
+    if(i%3!==1)lit+=`<rect x="${x+w/2-1.2}" y="${y+4}" width="2.4" height="2.4"/>`});
+  return `<clipPath id="nd-cw"><rect x="0" y="0" width="92" height="78" rx="4"/></clipPath><g clip-path="url(#nd-cw)">`+
+    `<rect class="nd-sky nd-k1" width="92" height="78" fill="#BDE8F7"/><rect class="nd-sky nd-k2" width="92" height="78" fill="#FFE1A0"/>`+
+    `<rect class="nd-sky nd-k3" width="92" height="78" fill="#F7A072"/><rect class="nd-sky nd-k4" width="92" height="78" fill="#1D2A5C"/>`+
+    `<circle class="nds-sun" cx="24" cy="22" r="9" fill="#F2B630" stroke="#E0951C" stroke-width="2"/>`+
+    `<g class="nd-cloud"><ellipse cx="44" cy="15" rx="10" ry="4" fill="#fff"/><ellipse cx="50" cy="12" rx="6" ry="4.5" fill="#fff"/></g>`+
+    // Sutro Tower: three legs that meet at a waist, a wide crossarm, then three masts with a second crossarm. Red and white bands.
+    `<g fill="none" stroke-linecap="round">${tw(legs,1.6)}${tw(masts,1.4)}${tw('M68.2 40H79.8M65.5 27H82.5M69.7 15H78.3',1.4)}`+
+    `<path d="${legs}" stroke="#E2483B" stroke-width="1.6" stroke-dasharray="3.4 3.4"/><path d="${masts}" stroke="#E2483B" stroke-width="1.4" stroke-dasharray="3 3" stroke-dashoffset="1.5"/>`+
+    `<path d="M65.5 27h2.8M79.7 27h2.8" stroke="#E2483B" stroke-width="1.4"/></g>`+
+    // Twin Peaks: two round grassy hills side by side, the left one in front
+    `<path d="M26 78V54Q40 37 54 38.5Q66 40 78 51.5Q86 58 92 60V78z" fill="#93A05B" stroke="${L}" stroke-width="1.6" stroke-linejoin="round"/>`+
+    `<path d="M-2 78V56Q10 41.5 24 40.5Q34 40 41.5 48.5Q48 57 51 78z" fill="#AEBB6E" stroke="${L}" stroke-width="1.6" stroke-linejoin="round"/>`+
+    `<path d="M14 47q8-4 16-2M44 44q8-3 15-1" stroke="#C8D38C" stroke-width="1.6" fill="none" stroke-linecap="round"/>`+
+    hs+
+    `<rect class="nds-dusk" width="92" height="78" fill="#B4473E" opacity="0"/><rect class="nd-wn4" width="92" height="78" fill="#0B1236" opacity="0"/>`+
+    `<mask id="nds-mm"><rect width="92" height="78" fill="#fff"/><circle cx="26" cy="13" r="7" fill="#000"/></mask><circle class="nd-moon" cx="22" cy="16" r="8" fill="#FFF6D6" mask="url(#nds-mm)"/>`+
+    `<g class="nd-stars"><path d="M46 10l1.4 3 3 1.4-3 1.4-1.4 3-1.4-3-3-1.4 3-1.4z" fill="#fff"/><circle cx="8" cy="30" r="1.3" fill="#fff"/><circle cx="58" cy="22" r="1.4" fill="#fff"/><circle cx="88" cy="14" r="1.2" fill="#fff"/><circle cx="36" cy="30" r="1.1" fill="#fff"/></g>`+
+    `<g class="nd-lit" fill="#FFD36B">${lit}</g></g>`;
+}
+// fog and tower lights are page elements over the window, so they move on the graphics card
+function ndsFogStrip(cls,y,col,op){
+  let d='';for(let i=0;i<4;i++){const x=i*46;d+=`M${x} ${y+12}q2-9 11-8q4-7 12-3q6-6 13 0q7-2 10 6q2 6-4 8H${x}z`}
+  return `<svg class="nds-fs ${cls}" viewBox="0 0 184 78" width="184" height="78"><path d="${d}" fill="${col}" opacity="${op}"/><rect x="0" y="${y+11}" width="184" height="9" rx="4" fill="${col}" opacity="${op}"/></svg>`;
+}
+function ndsMount(C){
+  const R=C.stage.querySelector('.nd-R');
+  if(R){const f=document.createElement('div');f.className='nds-fog';
+    f.innerHTML=ndsFogStrip('nds-f1',49,'#FFFFFF',.88)+ndsFogStrip('nds-f1 nds-f1b',31,'#FFFFFF',.5)+ndsFogStrip('nds-f3',48,'#FFE3D8',.85)+
+      `<i class="nds-mv"></i><i class="nds-mh"></i>`+[[68,5],[74,3],[80,5],[65.5,27],[82.5,27]].map(([x,y],i)=>`<i class="nds-lt" style="left:${x}px;top:${y}px;animation-delay:${i<3?0:-1.4}s"></i>`).join('');
+    R.appendChild(f)}
+  const p=document.createElement('div');p.className='nds-pile';
+  C.stage.insertBefore(p,C.stage.querySelector('.nd-arc'));
+  C.pile={el:p,n:0,w:0,layers:[]};
+}
+
+// (2) The waste pile. One layer per missed card, exactly as tall as the old red bar row (ROW), so cards land on top of it
+// at the same place as before. Shapes and icons carry the meaning, not colour; the HUD still says "Space N left".
+const NDS_GOO=[['#A9D046','#6E9A22'],['#B993D4','#7E58A0'],['#86CDBE','#3F8C7C'],['#E9BD52','#B5862A']];
+function ndsHaz(x,y,k){ // hazard triangle with "!"
+  return `<g transform="translate(${x} ${y}) scale(${k})"><path d="M0-7.5L7.5 6H-7.5z" fill="#F2B630" stroke="${ND_INK}" stroke-width="1.8" stroke-linejoin="round"/><path d="M0-2.6v4" stroke="${ND_INK}" stroke-width="1.9" stroke-linecap="round"/><circle cy="3.9" r="1" fill="${ND_INK}"/></g>`;
+}
+function ndsDrumSide(x,y,col){ // a drum lying on its side, 38 x 22
+  return `<g transform="translate(${x} ${y})"><rect x="-19" y="-11" width="38" height="22" rx="4" fill="${col}" stroke="${ND_INK}" stroke-width="2.4"/><path d="M-9-11v22M9-11v22" stroke="${ND_INK}" stroke-width="1.8" opacity=".55"/><ellipse cx="19" cy="0" rx="4.5" ry="11" fill="${col}" stroke="${ND_INK}" stroke-width="2.4"/><circle cx="19" cy="-5" r="1.6" fill="${ND_INK}"/>${ndsHaz(0,0,.95)}</g>`;
+}
+function ndsDrumUp(x,y,col){ // a standing drum, 26 x 34, a little tilted
+  return `<g transform="translate(${x} ${y}) rotate(-7)"><rect x="-13" y="-34" width="26" height="34" rx="3" fill="${col}" stroke="${ND_INK}" stroke-width="2.4"/><ellipse cx="0" cy="-34" rx="13" ry="3.6" fill="${col}" stroke="${ND_INK}" stroke-width="2.4"/><path d="M-13-23h26M-13-11h26" stroke="${ND_INK}" stroke-width="1.8" opacity=".55"/><path d="M-6-20h12v6h-12z" fill="#fff" stroke="${ND_INK}" stroke-width="1.4"/><path d="M-3.5-17.5l7 2M3.5-17.5l-7 2" stroke="${ND_INK}" stroke-width="1.4" stroke-linecap="round"/></g>`;
+}
+function ndsSpill(x,y,goo,flask,flip){ // a tipped beaker or flask with goo running out
+  const g=flask?ndFlask(-15,-18,goo,.9):ndBeaker(-14,-17,goo,.9);
+  return `<g transform="translate(${x} ${y}) scale(${flip?-1:1} 1)"><path d="M14 2q8-1 16 1q4 2-1 3H10z" fill="${goo}" stroke="${ND_INK}" stroke-width="1.8" stroke-linejoin="round"/><g transform="rotate(${flask?100:95})">${g}</g></g>`;
+}
+function ndsLayerSVG(i,W){ // layer i of the heap: each one is narrower, so the junk on its ends shows
+  const [goo,dk]=NDS_GOO[i%4],base=i?4+i*ROW-12:0,top=ROW+4+i*ROW,H=top+16-base,y=b=>H-(b-base); // y() turns height-from-floor into svg y
+  const wide=W>520,ins=Math.round(W*(wide?.075:.085)),k=wide?1:.62,x0=6+i*ins,x1=W-6-i*ins;
+  let d=`M${x0-6} ${y(base)}Q${x0} ${y(top-6)} ${x0+16} ${y(top-2)}`;
+  const seg=Math.max(4,Math.round((x1-x0-32)/40)),sw=(x1-x0-32)/seg;
+  for(let s=0;s<seg;s++){const a=x0+16+s*sw,up=((s*7+i*3)%5)*1.5;d+=`Q${a+sw*.5} ${y(top+2+up)} ${a+sw} ${y(top-3+((s+i)%3)*1.5)}`}
+  d+=`Q${x1} ${y(top-6)} ${x1+6} ${y(base)}z`;
+  let s=`<path d="${d}" fill="${goo}" stroke="${ND_LINE}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  // bubbles in the goo (shape texture)
+  for(let q=0;q<seg;q+=2){const a=x0+22+(q+.5)*sw;s+=`<circle cx="${a}" cy="${y(top-17)}" r="${2.4+(q%3)}" fill="none" stroke="${dk}" stroke-width="1.8"/><circle cx="${a+14}" cy="${y(top-29)}" r="1.8" fill="${dk}"/>`}
+  // junk on both ends of the layer (the label sits in the middle)
+  const fl=y(top-7),at=(x,o)=>`<g transform="translate(${x} ${fl}) scale(${k})">${o}</g>`,L=x0+(wide?36:20),R=x1-(wide?36:20);
+  const kit=[
+    [ndsDrumSide(0,-4,'#F2B630'),ndsSpill(0,0,'#2BB3CF',false,false)],
+    [ndsDrumUp(0,8,'#8FA7AE'),ndsSpill(0,0,'#E85A4F',true,false)],
+    [ndsSpill(0,0,'#F2B630',true,true),ndsDrumSide(0,-4,'#2BB3CF')],
+    [ndsDrumUp(0,8,'#E85A4F'),ndsDrumSide(0,-3,'#8FA7AE')]][i%4];
+  s+=at(L,kit[0])+at(R,kit[1]);
+  return {svg:`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">${s}</svg>`,base,H};
+}
+function ndsSign(n,W){ // a warning sign stuck in the top of the pile when 1 space (or none) is left
+  const b=4+n*ROW,x=W<520?44:Math.max(60,W/2-200),t=n>=STACK_MAX?'FULL':'1 left';
+  return `<div class="nds-sign" style="left:${x-36}px;bottom:${b-6}px"><svg viewBox="0 0 72 64" width="72" height="64" aria-hidden="true"><path d="M36 64V30" stroke="${ND_INK}" stroke-width="4" stroke-linecap="round"/>`+
+    `<path d="M36 2L58 38H14z" fill="#F2B630" stroke="${ND_INK}" stroke-width="3.2" stroke-linejoin="round"/><path d="M36 14v12" stroke="${ND_INK}" stroke-width="4" stroke-linecap="round"/><circle cx="36" cy="32" r="2.4" fill="${ND_INK}"/>`+
+    `<rect x="6" y="40" width="60" height="18" rx="4" fill="#fff" stroke="${ND_INK}" stroke-width="2.6"/><text x="36" y="54" text-anchor="middle" font-family="Baloo 2,Atkinson Hyperlegible,sans-serif" font-weight="800" font-size="14" fill="${ND_INK}">${t}</text></svg></div>`;
+}
+function ndsPile(P,n,W){
+  const rebuild=W!==P.w,grew=!rebuild&&n===P.n+1;
+  if(rebuild){P.layers.forEach(l=>l.remove());P.layers=[];P.w=W}
+  while(P.layers.length>n)P.layers.pop().remove();
+  while(P.layers.length<n){const i=P.layers.length,L=ndsLayerSVG(i,W),e=document.createElement('div');
+    e.className='nds-layer';e.style.bottom=L.base+'px';e.style.height=L.H+'px';e.innerHTML=L.svg;
+    if(grew&&i===n-1&&!ndReduced())e.classList.add('nds-new');
+    P.el.insertBefore(e,P.el.querySelector('.nds-sign,.nds-bub'));P.layers.push(e)}
+  P.el.querySelectorAll('.nds-sign,.nds-bub').forEach(e=>e.remove());
+  if(n>=STACK_MAX-1)P.el.insertAdjacentHTML('beforeend',ndsSign(n,W));
+  if(n>0){const b=4+n*ROW-4;P.el.insertAdjacentHTML('beforeend',`<div class="nds-bub" style="bottom:${b}px">`+[.2,.48,.74].map((f,i)=>`<i style="left:${Math.round(W*f+(i-1)*20)}px;animation-delay:${i*.9}s"></i>`).join('')+`</div>`)}
+  P.n=n;P.el.parentNode.dataset.pile=n;
+}
+function ndsAfterRender(){
+  ndsTime();
+  if(!ndC||!game||game.kind!=='drop')return;
+  if(!ndC.pile)ndsMount(ndC);
+  const n=game.timed?game.stack.length:0,W=$('well').clientWidth;
+  if(n!==ndC.pile.n||W!==ndC.pile.w)ndsPile(ndC.pile,n,W);
+  const hud=$('nLivesWrap');if(hud)hud.classList.toggle('nds-warn',game.timed&&STACK_MAX-game.stack.length<=1);
+}
+// ===== end SCENE (nd-scene) =====
 // ===== NAME DROP SCENE (nd-) : JS =====
 // Draws the lab behind the falling cards and Salty, the lab tech who tosses them in.
 // It never touches the game: it only draws, and the game calls it from four one-line hooks
@@ -1597,18 +1777,6 @@ function ndPoster(){ // a tiny periodic-table poster: only coloured blocks, no t
   const fill=['','#E85A4F','#2BB3CF','#F2B630','#8FB5C0'];let s='';
   rows.forEach((r,j)=>r.forEach((v,i)=>{if(v)s+=`<rect x="${6+i*10.5}" y="${19+j*9.5}" width="9" height="8" rx="1.5" fill="${fill[v]}"/>`}));
   return `<rect x="0" y="0" width="94" height="62" rx="5" fill="#FFFFFF" stroke="${ND_LINE}" stroke-width="2.5"/><rect x="6" y="6" width="50" height="7" rx="3" fill="${ND_INK}"/><rect x="60" y="6" width="9" height="7" rx="3" fill="#F2B630"/>${s}`;
-}
-function ndSky(){
-  return `<clipPath id="nd-cw"><rect x="0" y="0" width="92" height="78" rx="4"/></clipPath><g clip-path="url(#nd-cw)">`+
-    `<rect class="nd-sky nd-k1" width="92" height="78" fill="#BDE8F7"/><rect class="nd-sky nd-k2" width="92" height="78" fill="#FFE1A0"/>`+
-    `<rect class="nd-sky nd-k3" width="92" height="78" fill="#F7A072"/><rect class="nd-sky nd-k4" width="92" height="78" fill="#1D2A5C"/>`+
-    `<circle class="nd-sun" cx="62" cy="22" r="10" fill="#F2B630" stroke="#E0951C" stroke-width="2"/>`+
-    `<g class="nd-moon"><circle cx="64" cy="20" r="9" fill="#FFF6D6"/><circle cx="68" cy="17" r="8" fill="#1D2A5C"/></g>`+
-    `<g class="nd-stars"><path d="M14 14l1.6 3.4 3.4 1.6-3.4 1.6L14 24l-1.6-3.4L9 19l3.4-1.6z" fill="#fff"/><circle cx="40" cy="10" r="1.6" fill="#fff"/><circle cx="80" cy="40" r="1.4" fill="#fff"/><circle cx="30" cy="34" r="1.3" fill="#fff"/></g>`+
-    `<g class="nd-cloud"><ellipse cx="22" cy="24" rx="12" ry="5" fill="#fff"/><ellipse cx="30" cy="20" rx="8" ry="5.5" fill="#fff"/><ellipse cx="68" cy="40" rx="10" ry="4" fill="#fff" opacity=".9"/></g>`+
-    `<path d="M0 78V58h9V48h12v12h8V52h10v-8h12v16h9V50h10v28z" fill="#6F8F99"/><path d="M0 78V66h18v-8h9v8h17V62h14v-6h10v10h24v12z" fill="#4F6C72"/>`+
-    `<rect class="nd-wn4" width="92" height="78" fill="#0B1236" opacity="0"/>`+
-    `<g class="nd-lit" fill="#FFD36B"><rect x="14" y="52" width="3" height="3"/><rect x="34" y="55" width="3" height="3"/><rect x="62" y="51" width="3" height="3"/><rect x="74" y="58" width="3" height="3"/></g></g>`;
 }
 function ndSaltyHTML(){
   const E=ND_INK;
