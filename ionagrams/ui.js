@@ -1195,7 +1195,7 @@ window.addEventListener('gibson-session', e => {
 });
 
 // ================= WIRING + BOOT =================
-$('helpBtn').addEventListener('click', () => $('dHelp').showModal());
+$('helpBtn').addEventListener('click', () => (window.IonHowTo ? window.IonHowTo.help({ inRoom: !!M }) : $('dHelp').showModal()));   // HOWTO HOOK: howto.js opens the interactive How to play (the short list when in a room)
 setInterval(() => {
   try {
     if (M) { hostTick(); route(false); }
