@@ -1601,7 +1601,7 @@ function renderDrop(){
       ?`<div class="drop nm${tap}" id="dropCard" style="top:${game.y}px"><div>${c.name}${c.hint?`<div class="hint">${ionHTML(c.cat)} and ${ionHTML(c.an)}</div>`:''}</div>${spk}</div>`
       :`<div class="drop${tap}" id="dropCard" style="top:${game.y}px">${fHTML(c.cat,c.an,c.a,c.b)}${spk}</div>`;
   }
-  $('well').innerHTML=h;ndAfterRender();ndsAfterRender();
+  $('well').innerHTML=h;ndAfterRender();ndscAfterRender();
   const A=$('answers');
   if(!c){A.innerHTML='';return}
   if(game.sub==='say'&&!game.sayTyped){
@@ -1708,7 +1708,7 @@ $('drop').addEventListener('click',e=>{
 // Three things for Name drop: (1) fall timing that stays the same when the field's height changes,
 // (2) the chemical-waste pile that grows at the bottom of the field after each miss (it replaces the red bars),
 // (3) the window view: Twin Peaks and Sutro Tower, with fog in the morning and at sunset.
-// The game calls ndsAfterRender() once from renderDrop. Nothing here changes rules or scoring.
+// The game calls ndscAfterRender() once from renderDrop. Nothing here changes rules or scoring.
 
 // (1) Timing. The level times in DUR were set on the original field (clamp(300px, 46vh, 440px) tall).
 // The game works out the speed from the field's height; here it is reset so each card takes exactly as long
@@ -1760,7 +1760,7 @@ function ndsFogStrip(cls,y,col,op){
   let d='';for(let i=0;i<4;i++){const x=i*46;d+=`M${x} ${y+12}q2-9 11-8q4-7 12-3q6-6 13 0q7-2 10 6q2 6-4 8H${x}z`}
   return `<svg class="nds-fs ${cls}" viewBox="0 0 184 78" width="184" height="78"><path d="${d}" fill="${col}" opacity="${op}"/><rect x="0" y="${y+11}" width="184" height="9" rx="4" fill="${col}" opacity="${op}"/></svg>`;
 }
-function ndsMount(C){
+function ndscMount(C){
   const R=C.stage.querySelector('.nd-R');
   if(R){const f=document.createElement('div');f.className='nds-fog';
     f.innerHTML=ndsFogStrip('nds-f1',49,'#FFFFFF',.88)+ndsFogStrip('nds-f1 nds-f1b',31,'#FFFFFF',.5)+ndsFogStrip('nds-f3',48,'#FFE3D8',.85)+
@@ -1826,10 +1826,10 @@ function ndsPile(P,n,W){
   if(n>0){const b=4+n*ROW-4;P.el.insertAdjacentHTML('beforeend',`<div class="nds-bub" style="bottom:${b}px">`+[.2,.48,.74].map((f,i)=>`<i style="left:${Math.round(W*f+(i-1)*20)}px;animation-delay:${i*.9}s"></i>`).join('')+`</div>`)}
   P.n=n;P.el.parentNode.dataset.pile=n;
 }
-function ndsAfterRender(){
+function ndscAfterRender(){
   ndsTime();
   if(!ndC||!game||game.kind!=='drop')return;
-  if(!ndC.pile)ndsMount(ndC);
+  if(!ndC.pile)ndscMount(ndC);
   const n=game.timed?game.stack.length:0,W=$('well').clientWidth;
   if(n!==ndC.pile.n||W!==ndC.pile.w)ndsPile(ndC.pile,n,W);
   const hud=$('nLivesWrap');if(hud)hud.classList.toggle('nds-warn',game.timed&&STACK_MAX-game.stack.length<=1);
@@ -2062,7 +2062,7 @@ function ndsFling(card){
   if(!nds)nds=ndsMount();
   const T=Math.min(450,SALTY_CFG.TOSS_MS),g=game,sp=g.speed;
   // the card waits at its start spot until the flip ends, then falls at its normal speed (fall time unchanged)
-  g.speed=0;clearTimeout(ndsSpT);ndsSpT=setTimeout(()=>{if(g.speed===0)g.speed=sp},T);
+  g.speed=0;clearTimeout(ndsSpT);ndsSpT=setTimeout(()=>{if(g.speed===0){g.speed=sp;if(typeof ndsTime==='function'&&game===g)ndsTime()}},T); // ndsTime re-fits the speed to the taller field
   const sw=nds.sw;sw.style.setProperty('--nds-toss',T+'ms');sw.classList.remove('nds-dA','nds-dB');
   ndC.pose('toss',T+40,'idle');sw.classList.add('nds-flip');setTimeout(()=>sw.classList.remove('nds-flip'),T+40);
   const W=nds.wrap.getBoundingClientRect(),r=card.getBoundingClientRect(),s=sw.getBoundingClientRect();
