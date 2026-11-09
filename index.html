@@ -430,6 +430,64 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 /* the formula and answer colours the page uses in dark mode are too dark on the dark card: lighten the negative ion's colour (only while the scene is on) */
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #drop.nd-on :is(.drop,.ans,.fb) .x{color:var(--an)}}
 :root[data-theme="dark"] #drop.nd-on :is(.drop,.ans,.fb) .x{color:var(--an)}
+/* ===== SALTY (nd-salty) ===== */
+/* Salty's flip toss, beat dance, outfits by level step, and streak looks. Settings: SALTY_CFG in the script. */
+/* outfits: data-fit on .nd-sw (1 intern, 2 lab tech, 3 senior chemist, 4 Professor Salty; 0 = none) */
+.nds-o1,.nds-o2,.nds-o3,.nds-o4,.nds-clip,.nds-tie,.nds-bow{display:none}
+.nd-sw[data-fit="1"] .nds-o1,.nd-sw[data-fit="2"] :is(.nds-o2,.nds-clip,.nds-tie),.nd-sw[data-fit="3"] :is(.nds-o2,.nds-o3,.nds-tie),
+.nd-sw[data-fit="4"] :is(.nds-o2,.nds-o3,.nds-o4,.nds-bow){display:inline}
+.nd-sw[data-fit="3"] .nd-gog,.nd-sw[data-fit="4"] .nd-gog{display:none}
+/* sad shrug when a streak ends (kind, not mocking) */
+.nd-sw[data-s="shrug"] .nd-e-s,.nd-sw[data-s="shrug"] .nd-m-f{display:inline}
+.nd-sw[data-s="shrug"] .nd-arm-l{transform:rotate(64deg)}
+.nd-sw[data-s="shrug"] .nd-arm-r{transform:rotate(-64deg)}
+.nd-sw[data-s="shrug"]{animation:nds-shrug .5s ease-out}
+@keyframes nds-shrug{40%{transform:translateY(-4px)}}
+/* flip toss: wind up, lean back, fling */
+.nd-sw.nds-flip[data-s="toss"]{animation:nds-lean var(--nds-toss,.44s) ease-out both}
+.nd-sw.nds-flip[data-s="toss"] .nd-arm-r{animation:nds-throw var(--nds-toss,.44s) both}
+@keyframes nds-throw{0%{transform:rotate(-60deg)}26%{transform:rotate(-210deg)}48%{transform:rotate(-100deg)}100%{transform:rotate(-40deg)}}
+@keyframes nds-lean{0%{transform:none}26%{transform:rotate(-8deg) translateY(2px)}48%{transform:rotate(6deg) translateY(-3px)}100%{transform:none}}
+.nds-fly{position:absolute;z-index:4;margin:0;pointer-events:none;will-change:transform,opacity}
+/* dance: one class flip per beat (A/B swap restarts the animation); --nds-beat, --nds-amp, --nds-dip are set by the script */
+.nd-sw.nds-dA[data-s="idle"]{animation:nds-swA var(--nds-beat,.5s) ease-in-out both}
+.nd-sw.nds-dB[data-s="idle"]{animation:nds-swB var(--nds-beat,.5s) ease-in-out both}
+.nd-sw.nds-dA[data-s="idle"] :is(.nd-bob,.nds-cape){animation:nds-knA var(--nds-beat,.5s) ease-out both}
+.nd-sw.nds-dB[data-s="idle"] :is(.nd-bob,.nds-cape){animation:nds-knB var(--nds-beat,.5s) ease-out both}
+@keyframes nds-swA{from{transform:rotate(calc(var(--nds-amp,3deg)*-1))}to{transform:rotate(var(--nds-amp,3deg))}}
+@keyframes nds-swB{from{transform:rotate(var(--nds-amp,3deg))}to{transform:rotate(calc(var(--nds-amp,3deg)*-1))}}
+@keyframes nds-knA{0%{transform:none}20%{transform:translateY(var(--nds-dip,3px))}100%{transform:none}}
+@keyframes nds-knB{0%{transform:none}20%{transform:translateY(var(--nds-dip,3px))}100%{transform:none}}
+/* streak looks (inside .nd-sw, so they move with him) */
+.nd-sw .nd-salty{position:relative}
+.nds-spk,.nds-aura,.nds-shk{position:absolute;display:block;pointer-events:none;opacity:0}
+.nds-spk{width:16px;height:16px}
+.nds-spk1{left:-6px;top:34px}.nds-spk2{left:94px;top:12px;width:12px;height:12px}.nds-spk3{left:100px;top:78px;width:13px;height:13px}
+.nd-sw.nds-s1 .nds-spk{opacity:1;animation:nds-tw 1.1s ease-in-out infinite}
+.nd-sw.nds-s1 .nds-spk2{animation-delay:-.4s}.nd-sw.nds-s1 .nds-spk3{animation-delay:-.75s}
+@keyframes nds-tw{0%,100%{transform:scale(.45) rotate(0);opacity:.35}50%{transform:scale(1) rotate(45deg);opacity:1}}
+.nds-aura{left:-12px;top:-6px;width:134px;height:142px;transform-origin:50% 92%}
+.nd-sw.nds-s3 .nds-aura{opacity:.95;animation:nds-flk .5s ease-in-out infinite alternate}
+@keyframes nds-flk{from{transform:scale(1,.96);opacity:.8}to{transform:scale(1.02,1.05);opacity:1}}
+.nds-shk{left:84px;top:52px;width:20px;height:28px}
+.nds-cf{position:absolute;left:0;top:0;width:8px;height:8px;margin:-4px 0 0 -4px;border:1.5px solid #17323A;opacity:0}
+/* "Salty leveled up!" / "5 in a row!" message */
+.nds-pill{position:absolute;left:14px;top:6px;z-index:2;padding:2px 12px;border-radius:999px;background:#17323A;border:2px solid #F2B630;color:#fff;font:800 15px/1.35 "Baloo 2","Atkinson Hyperlegible",sans-serif;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.nds-pill[hidden]{display:none}
+.nds-pill span{font-weight:700;color:#FFE08A;margin-left:6px}
+.nds-pill.nds-lv{border-color:#9BE0EE}
+/* the streak chip: bonus points, and a calm "streak ended" state */
+.nds-bonus{font-style:normal;color:#FFE08A;margin-left:3px}
+.nds-bonus:empty{display:none}
+.nd-chip.nds-end{border-color:#8CA1A7}
+.nd-chip.nds-end svg{display:none}
+.nd-chip.nds-end b::before{content:"\21BA  ";font-weight:700}
+.nd-chip.nds-end span{display:none}
+.nds-live{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+@media (max-width:620px){
+  .nds-pill{left:6px;top:4px;font-size:13px;padding:1px 9px}
+}
+/* ===== end SALTY (nd-salty) ===== */
 /* ===== end NAME DROP SCENE ===== */
 </style>
 </head>
@@ -647,6 +705,25 @@ const ND_CFG = {
   SALTY: true            // true = Salty, the lab tech, tosses each card in and reacts. false = the lab with no character. (Only matters when NAMEDROP_SCENE is true.)
 };
 // The lab changes with the level, on the same steps as the music: levels 1-3 morning, 4-6 afternoon, 7-9 sunset, 10+ night.
+// =============================================================================
+// ======================== SALTY + STREAKS (safe to edit) ========================
+const SALTY_CFG = {
+  TOSS_FLIP: true,     // true = Salty winds up and flips each new card in. false = the old quick pop.
+  TOSS_MS: 440,        // how long the flip takes, in milliseconds (keep it 450 or less). The card waits at the top until
+                       // the flip ends, then starts to fall, so students still get the full fall time to read it.
+  DANCE: true,         // true = Salty sways and bends his knees to the beat while the music is on.
+  OUTFITS: true,       // true = Salty dresses up as the levels go up (same steps as the music):
+                       // levels 1-3 lab intern (badge), 4-6 lab tech (lab coat, clipboard),
+                       // 7-9 senior chemist (goggles up, pocket protector), 10+ Professor Salty (cap and crystal cape).
+  STREAK_BONUS: true,  // true = extra points for right answers in a row (Name drop only). false = the streak is just for show.
+  // Streak steps: [right answers in a row, bonus percent]. The bonus is that percent of the points the card already earned,
+  // so the bonus can never be more than the top percent (25%). A wrong answer or a card that lands starts the count over.
+  // Example: 20 right in a row worth 17 points each = 340 points + 56 bonus (about 16% more). It only gets near 25% after very long streaks.
+  // Each step also has a look: 1st step sparkles, 2nd a salt shaker trick, 3rd a flame-test glow, 4th confetti.
+  STREAK_STEPS: [[3, 10], [5, 15], [8, 20], [12, 25]],
+  CONFETTI_EVERY: 12,  // after the top step, confetti again every this many more in a row (24, 36, ...)
+  PILL_MS: 950         // how long the "Salty leveled up!" and "5 in a row!" messages show, in milliseconds
+};
 // =============================================================================
 (() => {
 // ================= DATA =================
@@ -1425,7 +1502,7 @@ function win(){
   const c=game.cur;game.answered=true;
   const frac=Math.max(0,1-game.y/Math.max(1,wellFloor()));
   const mult={pick:1,type:2,formula:2,say:c.showName?1:2}[game.sub]*((c.cat.poly||c.an.poly)?1.5:1);
-  const pts=pt(Math.round((10+game.level*2+frac*10)*mult*(c.usedHint?.5:1)));
+  const pts=ndsBonus(pt(Math.round((10+game.level*2+frac*10)*mult*(c.usedHint?.5:1))));
   game.score+=pts;addCoins(pts);record(c.cat.c,-c.an.c);game.right++;sfx.good();tally('drop-'+game.sub,true);
   $('dropCard')?.classList.add('right');ndWin();
   if(game.sub==='type'||game.sub==='say'){const f=$('fb');if(f){f.textContent=`${c.name}  +${pts}`;f.className='fb good'}}
@@ -1510,33 +1587,34 @@ function ndSaltyHTML(){
   const E=ND_INK;
   return `<svg class="nd-salty" viewBox="0 0 100 120" width="110" height="132" aria-hidden="true">`+
   `<ellipse cx="48" cy="114" rx="32" ry="4" fill="rgba(0,0,0,.2)"/>`+
-  `<g class="nd-hop"><g class="nd-body"><g class="nd-bob">`+
+  ndsWear('cape')+`<g class="nd-hop"><g class="nd-body">`+
     // legs and mismatched shoes: red left (cation colour), teal right (anion colour)
     `<rect x="27" y="88" width="13" height="18" rx="5" fill="#E8F3F7" stroke="${E}" stroke-width="3"/><rect x="52" y="88" width="13" height="18" rx="5" fill="#E8F3F7" stroke="${E}" stroke-width="3"/>`+
-    `<path d="M21 106h21a5 5 0 0 1 5 5v1H18v-1a3 3 0 0 1 3-5z" fill="#E85A4F" stroke="${E}" stroke-width="3" stroke-linejoin="round"/><path d="M50 106h21a3 3 0 0 1 3 5v1H45v-1a5 5 0 0 1 5-5z" fill="#2BB3CF" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    `<path d="M21 106h21a5 5 0 0 1 5 5v1H18v-1a3 3 0 0 1 3-5z" fill="#E85A4F" stroke="${E}" stroke-width="3" stroke-linejoin="round"/><path d="M50 106h21a3 3 0 0 1 3 5v1H45v-1a5 5 0 0 1 5-5z" fill="#2BB3CF" stroke="${E}" stroke-width="3" stroke-linejoin="round"/><g class="nd-bob">`+
     // the crystal: a cube
     `<path d="M74 36L88 24V80L74 92z" fill="#C9E4EE" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
     `<path d="M18 36L32 24H88L74 36z" fill="#EAF7FB" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
     `<rect x="18" y="36" width="56" height="56" rx="4" fill="#FFFFFF" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
     `<circle cx="81" cy="46" r="3.4" fill="#E85A4F"/><circle cx="81" cy="58" r="3.4" fill="#2BB3CF"/><circle cx="81" cy="70" r="3.4" fill="#E85A4F"/>`+
     `<path d="M23 42h8M23 42v8" stroke="#BFE3EE" stroke-width="3" stroke-linecap="round"/>`+
+    ndsWear('coat')+
     // goggles
-    `<path d="M18 57h8M66 57h8" stroke="#167A90" stroke-width="5" stroke-linecap="round"/><circle cx="35" cy="57" r="10.5" fill="#EAFBFF" stroke="#167A90" stroke-width="3.5"/><circle cx="57" cy="57" r="10.5" fill="#EAFBFF" stroke="#167A90" stroke-width="3.5"/><path d="M45 57h2" stroke="#167A90" stroke-width="4"/>`+
+    `<g class="nd-gog"><path d="M18 57h8M66 57h8" stroke="#167A90" stroke-width="5" stroke-linecap="round"/><circle cx="35" cy="57" r="10.5" fill="#EAFBFF" stroke="#167A90" stroke-width="3.5"/><circle cx="57" cy="57" r="10.5" fill="#EAFBFF" stroke="#167A90" stroke-width="3.5"/><path d="M45 57h2" stroke="#167A90" stroke-width="4"/></g>`+ndsWear('face')+
     // eyes
     `<g class="nd-e nd-e-i"><g class="nd-blink"><ellipse cx="35" cy="58" rx="3.3" ry="4.2" fill="${E}"/><ellipse cx="57" cy="58" rx="3.3" ry="4.2" fill="${E}"/><circle cx="36.2" cy="56.4" r="1.2" fill="#fff"/><circle cx="58.2" cy="56.4" r="1.2" fill="#fff"/></g></g>`+
     `<g class="nd-e nd-e-h" fill="none" stroke="${E}" stroke-width="2.8" stroke-linecap="round"><path d="M29.5 60q5.5-8 11 0"/><path d="M51.5 60q5.5-8 11 0"/></g>`+
     `<g class="nd-e nd-e-w" fill="none" stroke="${E}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M30.5 52.5l9 5.5-9 5.5"/><path d="M61.5 52.5l-9 5.5 9 5.5"/></g>`+
     `<g class="nd-e nd-e-d" fill="none" stroke="${E}" stroke-width="1.9" stroke-linecap="round"><path d="M35 58a1.4 1.4 0 1 1 2.8 0a3 3 0 1 1-6 0a4.6 4.6 0 1 1 9.2 0"/><path d="M57 58a1.4 1.4 0 1 1 2.8 0a3 3 0 1 1-6 0a4.6 4.6 0 1 1 9.2 0"/></g>`+
-    `<circle cx="27" cy="73" r="4" fill="#FF8FA3" opacity=".6"/><circle cx="65" cy="73" r="4" fill="#FF8FA3" opacity=".6"/>`+
+    ndsWear('sad')+`<circle cx="27" cy="73" r="4" fill="#FF8FA3" opacity=".6"/><circle cx="65" cy="73" r="4" fill="#FF8FA3" opacity=".6"/>`+
     // mouths
     `<path class="nd-m nd-m-s" d="M38 74q8 8 16 0" fill="none" stroke="${E}" stroke-width="3" stroke-linecap="round"/>`+
     `<g class="nd-m nd-m-o"><path d="M37 72.5Q46 90 55 72.5z" fill="${E}" stroke="${E}" stroke-width="2.4" stroke-linejoin="round"/><path d="M41.5 80Q46 76.5 50.5 80Q46 85 41.5 80z" fill="#FF8FA3"/></g>`+
     `<path class="nd-m nd-m-w" d="M37 78q2.75-4.5 5.5 0t5.5 0 5.5 0" fill="none" stroke="${E}" stroke-width="2.8" stroke-linecap="round"/>`+
     `<path class="nd-sweat" d="M70 38q-4.5 6.5-4.5 9.5a4.5 4.5 0 0 0 9 0q0-3-4.5-9.5z" fill="#8EDCEB" stroke="#167A90" stroke-width="2"/>`+
     // arms: white sleeves, blue lab gloves
-    `<g class="nd-arm nd-arm-l"><rect x="7" y="56" width="10" height="23" rx="5" fill="#fff" stroke="${E}" stroke-width="3"/><circle cx="12" cy="82" r="7" fill="#2BB3CF" stroke="#167A90" stroke-width="3"/></g>`+
+    `<g class="nd-arm nd-arm-l"><rect x="7" y="56" width="10" height="23" rx="5" fill="#fff" stroke="${E}" stroke-width="3"/>${ndsWear('clip')}<circle cx="12" cy="82" r="7" fill="#2BB3CF" stroke="#167A90" stroke-width="3"/></g>`+
     `<g class="nd-arm nd-arm-r"><rect x="87" y="52" width="10" height="23" rx="5" fill="#fff" stroke="${E}" stroke-width="3"/><circle cx="92" cy="78" r="7" fill="#2BB3CF" stroke="#167A90" stroke-width="3"/></g>`+
-    `<path class="nd-glint" d="M20 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fff" stroke="#8EDCEB" stroke-width="1.5" stroke-linejoin="round"/>`+
+    `<path class="nd-glint" d="M20 20l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#fff" stroke="#8EDCEB" stroke-width="1.5" stroke-linejoin="round"/>`+ndsWear('hat')+
   `</g></g>`+
   `<g class="nd-orbitwrap" transform="translate(48 14)"><path class="nd-star nd-o1" d="M0-8L2.4-2.4 8 0 2.4 2.4 0 8-2.4 2.4-8 0-2.4-2.4z" fill="#F2B630" stroke="#A7790F" stroke-width="1.6" stroke-linejoin="round"/><path class="nd-star nd-o2" d="M0-8L2.4-2.4 8 0 2.4 2.4 0 8-2.4 2.4-8 0-2.4-2.4z" fill="#F2B630" stroke="#A7790F" stroke-width="1.6" stroke-linejoin="round"/><path class="nd-star nd-o3" d="M0-8L2.4-2.4 8 0 2.4 2.4 0 8-2.4 2.4-8 0-2.4-2.4z" fill="#F2B630" stroke="#A7790F" stroke-width="1.6" stroke-linejoin="round"/></g>`+
   `</g></svg>`;
@@ -1630,11 +1708,162 @@ function ndAfterRender(){
   if(!ndC)ndC=ndMount($('well'),ND_CFG.SALTY);
   if(ndGame!==game){ndGame=game;ndCard=null;ndRun=0;ndC.reset()}
   ndC.step(Math.min(4,1+Math.floor((game.level-1)/MUSIC_CFG.LEVELS_PER_STEP))); // same level steps as the music
-  if(game.cur&&game.cur!==ndCard){ndCard=game.cur;const el=$('dropCard');if(el)el.classList.add('nd-pop');ndC.toss(el)}
+  if(game.cur&&game.cur!==ndCard){ndCard=game.cur;const el=$('dropCard');if(!ndsToss(el)){if(el)el.classList.add('nd-pop');ndC.toss(el)}}
+  ndsAfterRender();
 }
-function ndWin(){if(ndC&&game){ndRun++;ndC.cheer($('dropCard'),ndRun)}}
-function ndMiss(landed){if(ndC&&game){ndRun=0;ndC.miss($('dropCard'),landed)}}
+function ndWin(){if(ndC&&game){ndC.cheer($('dropCard'),game.ndStreak||0);ndsWin()}}
+function ndMiss(landed){const run=game&&game.ndStreak||0;if(game)game.ndStreak=0;if(ndC&&game){ndC.miss($('dropCard'),landed);ndsMiss(landed,run)}}
 // ===== end NAME DROP SCENE : JS =====
+// ===== SALTY (nd-salty) =====
+// Salty's flip toss, beat dance, outfits by level step, streak looks and the small streak bonus.
+// Settings: SALTY_CFG. Called from ndAfterRender, ndWin, ndMiss (scene) and win() (ndsBonus, for points).
+const NDS_FITS=['','Lab intern','Lab tech','Senior chemist','Professor Salty'];
+function ndsWear(part){ // outfit pieces inside Salty's drawing (CSS shows the ones for his data-fit)
+  const E=ND_INK;
+  if(part==='sad')return `<g class="nd-e nd-e-s"><ellipse cx="35" cy="60" rx="3" ry="3.6" fill="${E}"/><ellipse cx="57" cy="60" rx="3" ry="3.6" fill="${E}"/><path d="M30 54.5l8.5-3M62 54.5l-8.5-3" stroke="${E}" stroke-width="2.4" stroke-linecap="round"/></g>`+
+    `<path class="nd-m nd-m-f" d="M39 80.5q7-6 14 0" fill="none" stroke="${E}" stroke-width="3" stroke-linecap="round"/>`;
+  if(!SALTY_CFG.OUTFITS)return '';
+  const cube=(x,y)=>`<path d="M${x} ${y-3.2}l3.2 1.8v3.6L${x} ${y+4}l-3.2-1.8v-3.6z" fill="#fff" stroke="${E}" stroke-width="1.2" stroke-linejoin="round"/>`;
+  if(part==='cape')return `<g class="nds-o4 nds-cape"><path d="M20 42L1 106Q48 116 99 100L88 30z" fill="#7A5BC7" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    cube(7,97)+cube(12,84)+cube(93,90)+cube(95,79)+cube(46,103)+cube(26,105)+cube(80,101)+`</g>`;
+  if(part==='coat')return `<g class="nds-o2"><path d="M74 80L88 68V86L74 99z" fill="#CFE3EA" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    `<path d="M16 80H34L46 93L58 80H76V99H16z" fill="#F4FAFC" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    `<path d="M34 80L46 93L58 80z" fill="#2BB3CF" stroke="${E}" stroke-width="2.4" stroke-linejoin="round"/><path d="M34 80l5 10M58 80l-5 10" stroke="${E}" stroke-width="2" stroke-linecap="round"/>`+
+    `<circle cx="46" cy="96" r="1.6" fill="${E}"/>`+
+    `<path class="nds-tie" d="M44 80.5h4l-.7 2.8 1.6 6.2L46 92.6l-2.9-3.1 1.6-6.2z" fill="#E85A4F" stroke="${E}" stroke-width="1.5" stroke-linejoin="round"/>`+
+    `<g class="nds-bow"><path d="M46 83.5l-7-4v8zM46 83.5l7-4v8z" fill="#F2B630" stroke="${E}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="46" cy="83.5" r="2" fill="#F2B630" stroke="${E}" stroke-width="1.4"/></g></g>`;
+  if(part==='face')return `<g class="nds-o1"><rect x="57" y="80" width="13" height="12" rx="2" fill="#fff" stroke="${E}" stroke-width="2"/><path d="M57.8 80.8h11.4v3.4H57.8z" fill="#2BB3CF"/><rect x="59.5" y="85.8" width="3.6" height="4.2" rx=".8" fill="#8CA1A7"/><path d="M64.8 86.6h3M64.8 89h2.2" stroke="${E}" stroke-width="1.3" stroke-linecap="round"/><rect x="61.5" y="77.5" width="4" height="4" rx="1" fill="#8A9AA0" stroke="#475A60" stroke-width="1.2"/></g>`+
+    `<g class="nds-o3"><path d="M18 41h6M68 41h6" stroke="#167A90" stroke-width="4.5" stroke-linecap="round"/><ellipse cx="35" cy="41" rx="10" ry="6" fill="#EAFBFF" stroke="#167A90" stroke-width="3"/><ellipse cx="57" cy="41" rx="10" ry="6" fill="#EAFBFF" stroke="#167A90" stroke-width="3"/><path d="M45 41h2" stroke="#167A90" stroke-width="3.5"/><path d="M29.5 39.5q2.5-2 5-1.5M51.5 39.5q2.5-2 5-1.5" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>`+
+    `<path d="M62 84.5v-6.5" stroke="#E85A4F" stroke-width="2.6" stroke-linecap="round"/><path d="M65.5 84.5v-7.5" stroke="#2BB3CF" stroke-width="2.6" stroke-linecap="round"/><path d="M69 84.5v-5.5" stroke="#F2B630" stroke-width="2.6" stroke-linecap="round"/><rect x="60" y="83" width="11" height="9.5" rx="1.5" fill="#E8F3F7" stroke="${E}" stroke-width="2"/></g>`;
+  if(part==='clip')return `<g class="nds-clip"><rect x="-2" y="68" width="17" height="22" rx="2" fill="#C79A66" stroke="#7A5632" stroke-width="2.2"/><rect x=".5" y="72" width="12" height="15" fill="#fff"/><path d="M2.5 76h8M2.5 79.5h8M2.5 83h5" stroke="#8CA1A7" stroke-width="1.5"/><rect x="3" y="66" width="7" height="4" rx="1.5" fill="#8A9AA0" stroke="#475A60" stroke-width="1.4"/></g>`;
+  if(part==='hat')return `<g class="nds-o4"><path d="M39 28L41 17H65L67 28Q53 32 39 28z" fill="#4E3596" stroke="${E}" stroke-width="3" stroke-linejoin="round"/>`+
+    `<path d="M53 3L85 12.5L53 22L21 12.5z" fill="#7A5BC7" stroke="${E}" stroke-width="3" stroke-linejoin="round"/><circle cx="53" cy="12.5" r="2.2" fill="#F2B630"/>`+
+    `<path d="M53 12.5L80 15V27" fill="none" stroke="#F2B630" stroke-width="2.2" stroke-linecap="round"/><path d="M77.5 26h5l1.2 7.5h-7.4z" fill="#F2B630" stroke="#A7790F" stroke-width="1.4" stroke-linejoin="round"/></g>`;
+  return '';
+}
+// points: called from win() with the card's normal points; returns them plus the streak bonus
+function ndsBonus(base){
+  if(!game)return base;
+  const n=game.ndStreak=(game.ndStreak||0)+1,i=ndsStep(n);
+  const b=SALTY_CFG.STREAK_BONUS&&i>=0?Math.floor(base*SALTY_CFG.STREAK_STEPS[i][1]/100):0; // floor: never above the percent
+  game.ndBonus=b;return base+b;
+}
+function ndsStep(n){let k=-1;SALTY_CFG.STREAK_STEPS.forEach((s,i)=>{if(n>=s[0])k=i});return k}
+let nds=null,ndsGame=null,ndsRaf=0,ndsPend=null,ndsSpT=0,ndsFlyA=null,ndsQ=[],ndsQT=0,ndsBeat=-1,ndsBeatAt=0,ndsAB=false,ndsLvl=0,ndsTrk=null,ndsBeatMs=500;
+function ndsMount(){
+  const sw=ndC.stage.querySelector('.nd-sw');if(!sw)return null;
+  const star=c=>`<svg viewBox="-8 -8 16 16" width="100%" height="100%"><path d="M0-8L2-2 8 0 2 2 0 8-2 2-8 0-2-2z" fill="${c}" stroke="#A7790F" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+  const flame=`<svg viewBox="0 0 134 142" width="134" height="142"><path d="M67 142C24 142 6 118 8 90 10 72 18 62 18 46 26 56 30 62 32 60 30 40 40 22 52 8 54 26 60 34 66 30 70 18 78 10 88 2 88 20 92 34 100 38 104 32 106 26 110 20 118 36 124 56 122 76 128 84 130 96 126 110 120 130 100 142 67 142z" fill="#FFB238" opacity=".75"/>`+
+    `<path d="M67 138C34 138 20 120 22 98 24 84 30 76 32 64 38 72 42 76 44 74 44 58 52 44 60 34 62 48 68 52 72 48 76 38 82 32 90 26 90 40 94 50 100 54 104 62 108 72 108 86 112 96 112 108 108 118 102 132 88 138 67 138z" fill="#FFE07A" opacity=".85"/></svg>`;
+  const shk=`<svg viewBox="0 0 20 28" width="20" height="28"><path d="M4 9h12l1.5 15a3 3 0 0 1-3 3.4h-9a3 3 0 0 1-3-3.4z" fill="#EAFBFF" stroke="#17323A" stroke-width="2" stroke-linejoin="round"/><path d="M4.6 16h10.8l1 8.5a2 2 0 0 1-2 2.3H5.6a2 2 0 0 1-2-2.3z" fill="#fff"/><path d="M4 9q0-7 6-7t6 7z" fill="#B7C6CB" stroke="#17323A" stroke-width="2" stroke-linejoin="round"/><circle cx="8" cy="5.5" r=".9" fill="#17323A"/><circle cx="12" cy="5.5" r=".9" fill="#17323A"/></svg>`;
+  const aura=document.createElement('i');aura.className='nds-aura';aura.innerHTML=flame;sw.insertBefore(aura,sw.firstChild);
+  sw.insertAdjacentHTML('beforeend',`<i class="nds-spk nds-spk1">${star('#F2B630')}</i><i class="nds-spk nds-spk2">${star('#fff')}</i><i class="nds-spk nds-spk3">${star('#F2B630')}</i><i class="nds-shk">${shk}</i>`);
+  const pill=document.createElement('div');pill.className='nds-pill';pill.hidden=true;pill.innerHTML='<b></b><span></span>';ndC.stage.appendChild(pill);
+  const cf=document.createElement('div');cf.className='nd-fx';ndC.stage.appendChild(cf);const C=['#E85A4F','#2BB3CF','#F2B630','#fff','#7A5BC7','#2E9E5B'],cfs=[];
+  for(let i=0;i<18;i++){const e=document.createElement('i');e.className='nds-cf';e.style.background=C[i%C.length];if(i%3===0)e.style.borderRadius='50%';cf.appendChild(e);cfs.push(e)}
+  const live=document.createElement('p');live.className='nds-live';live.setAttribute('aria-live','polite');ndC.stage.parentNode.appendChild(live);
+  const chip=ndC.stage.querySelector('.nd-chip'),em=document.createElement('em');em.className='nds-bonus';chip.appendChild(em);
+  return {sw,pill,cfs,live,chip,em,shk:sw.querySelector('.nds-shk'),hand:sw.querySelector('.nd-arm-r circle'),wrap:ndC.stage.parentNode};
+}
+function ndsSay(t){if(!nds)return;nds.live.textContent='';setTimeout(()=>{if(nds)nds.live.textContent=t},60)}
+function ndsSetFit(n){if(nds)nds.sw.dataset.fit=SALTY_CFG.OUTFITS?n:0}
+function ndsFitNow(){return Math.min(4,1+Math.floor((game.level-1)/MUSIC_CFG.LEVELS_PER_STEP))} // same steps as the scene and music
+function ndsAfterRender(){
+  if(!ndC||!game)return;
+  if(!nds){nds=ndsMount();if(!nds)return}
+  if(ndsGame!==game){ndsGame=game;ndsQ=[];clearTimeout(ndsQT);ndsQT=0;nds.pill.hidden=true;ndsSetFit(ndsFitNow());ndsStreakLook(0);nds.chip.classList.remove('nds-end');nds.em.textContent=''}
+  const f=ndsFitNow();
+  if(SALTY_CFG.OUTFITS&&f>+nds.sw.dataset.fit&&!game.ndFitQ){game.ndFitQ=f; // level step went up: queue the "leveled up" moment
+    ndsPush({main:'Salty leveled up!',sub:NDS_FITS[f],cls:'nds-lv',say:`Salty leveled up! He is now: ${NDS_FITS[f]}.`,fx:()=>{game.ndFitQ=0;ndsSetFit(f);const r=ndsRel(nds.sw);ndC.burst(r.cx,r.y+r.h*.45,'salt',1.1)}})}
+  if(!ndsRaf)ndsRaf=requestAnimationFrame(ndsFrame);
+}
+const ndsRel=el=>{const a=el.getBoundingClientRect(),b=ndC.stage.getBoundingClientRect();return{x:a.left-b.left,y:a.top-b.top,w:a.width,h:a.height,cx:a.left-b.left+a.width/2,cy:a.top-b.top+a.height/2}};
+// the flip toss: true = handled here (the old pop is skipped)
+function ndsToss(card){
+  if(!SALTY_CFG.TOSS_FLIP||!card||!ND_CFG.SALTY||!ndC.stage.querySelector('.nd-sw'))return false;
+  if(nds&&nds.chip.classList.contains('nds-end')){nds.chip.hidden=true;nds.chip.classList.remove('nds-end')}
+  if(ndReduced()){card.animate&&card.animate([{opacity:0},{opacity:1}],{duration:180});return false} // reduced motion: a plain fade, no flip
+  if(game.paused){card.style.opacity=0;ndsPend=card;return true} // a new-ion card is open: toss it in when it closes
+  ndsFling(card);return true;
+}
+function ndsFling(card){
+  if(!nds)nds=ndsMount();
+  const T=Math.min(450,SALTY_CFG.TOSS_MS),g=game,sp=g.speed;
+  // the card waits at its start spot until the flip ends, then falls at its normal speed (fall time unchanged)
+  g.speed=0;clearTimeout(ndsSpT);ndsSpT=setTimeout(()=>{if(g.speed===0)g.speed=sp},T);
+  const sw=nds.sw;sw.style.setProperty('--nds-toss',T+'ms');sw.classList.remove('nds-dA','nds-dB');
+  ndC.pose('toss',T+40,'idle');sw.classList.add('nds-flip');setTimeout(()=>sw.classList.remove('nds-flip'),T+40);
+  const W=nds.wrap.getBoundingClientRect(),r=card.getBoundingClientRect(),s=sw.getBoundingClientRect();
+  const fly=card.cloneNode(true);fly.removeAttribute('id');fly.classList.remove('nd-pop','tap');fly.classList.add('nds-fly');
+  fly.style.cssText=`left:${r.left-W.left}px;top:${r.top-W.top}px;width:${r.width}px;height:${r.height}px;transform:none`;
+  nds.wrap.appendChild(fly);card.style.opacity=0;
+  const cx=r.left+r.width/2,cy=r.top+r.height/2,hx=s.left+s.width*.95-cx,hy=s.top+s.height*.12-cy,ay=-Math.max(64,r.height+34),ax=hx*.42;
+  const k=(x,y,rot,fl,sx,sy,o,off,e)=>({transform:`perspective(600px) translate(${x}px,${y}px) rotate(${rot}deg) rotateX(${fl}deg) scale(${sx},${sy})`,opacity:o,offset:off,easing:e||'linear'});
+  ndsFlyA=fly.animate([k(hx,hy,-420,0,.3,.3,0,0),k(hx,hy,-420,0,.3,.3,0,.26),k(hx+6,hy-8,-400,0,.42,.42,1,.32,'cubic-bezier(.2,.7,.4,1)'),
+    k(ax,ay,-160,180,.9,.9,1,.66,'cubic-bezier(.5,0,.8,.6)'),k(0,4,6,360,1.05,.94,1,.88,'ease-out'),k(0,0,0,360,1,1,1,1)],{duration:T,fill:'both'});
+  const done=()=>{fly.remove();card.style.opacity='';ndsFlyA=null};ndsFlyA.onfinish=done;ndsFlyA.oncancel=done;
+}
+// streak looks on Salty: 1st step sparkles, 3rd step flame glow (they stay while the streak lasts)
+function ndsStreakLook(n){if(!nds)return;const i=ndsStep(n);nds.sw.classList.toggle('nds-s1',i>=0);nds.sw.classList.toggle('nds-s3',i>=2)}
+function ndsWin(){
+  if(ndsFlyA)ndsFlyA.finish();
+  if(!nds)return;const n=game.ndStreak||0,i=ndsStep(n),S=SALTY_CFG.STREAK_STEPS;
+  ndsStreakLook(n);nds.chip.classList.remove('nds-end');nds.em.textContent=game.ndBonus?`+${game.ndBonus} bonus`:'';
+  const top=S.length?S[S.length-1][0]:0,rep=SALTY_CFG.CONFETTI_EVERY;
+  const hit=i>=0&&S[i][0]===n,again=top&&rep>0&&n>top&&(n-top)%rep===0;
+  if(!hit&&!again)return;
+  const pc=S[i][1],fx=again||i===3?ndsConfetti:i===1?ndsShaker:null,bon=SALTY_CFG.STREAK_BONUS;
+  ndsPush({main:`${n} in a row!`,sub:bon?(again?'Amazing!':`Bonus +${pc}%`):'',fx,say:`${n} right in a row!`+(bon&&!again?` Bonus points are now ${pc} percent.`:'')});
+}
+function ndsMiss(landed,run){
+  if(ndsFlyA)ndsFlyA.finish();
+  if(!nds)return;ndsStreakLook(0);nds.em.textContent='';
+  if(run<(SALTY_CFG.STREAK_STEPS[0]||[3])[0])return;
+  if(landed)ndC.pose('dizzy',600,'shrug');else ndC.pose('shrug');
+  const c=nds.chip;c.querySelector('b').textContent=`Streak ended: ${run} in a row`;c.classList.add('nds-end');c.hidden=false;
+  ndsSay(`Streak ended. You got ${run} in a row. Start a new one.`);
+}
+// messages + their effects wait while a new-ion card is open, then show one at a time (each under 1 s)
+function ndsPush(q){ndsQ.push(q);if(!ndsQT)ndsQT=setTimeout(ndsPump,0)}
+function ndsPump(){
+  ndsQT=0;if(!nds||!game||game.kind!=='drop'){ndsQ=[];if(nds)nds.pill.hidden=true;return}
+  if(game.paused){ndsQT=setTimeout(ndsPump,150);return}
+  const q=ndsQ.shift(),p=nds.pill;
+  if(!q){p.hidden=true;return}
+  p.firstChild.textContent=q.main;p.lastChild.textContent=q.sub||'';p.className='nds-pill '+(q.cls||'');p.hidden=false;
+  if(!ndReduced()&&p.animate)p.animate([{transform:'scale(.6)',opacity:0},{transform:'scale(1.06)',opacity:1,offset:.6},{transform:'scale(1)',opacity:1}],{duration:260});
+  if(q.fx)q.fx();if(q.say)ndsSay(q.say);
+  ndsQT=setTimeout(ndsPump,SALTY_CFG.PILL_MS);
+}
+function ndsShaker(){ // 5 in a row: he flips a salt shaker and catches it
+  if(ndReduced()||!nds.shk.animate)return;
+  nds.shk.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(20px,-44px) rotate(380deg)',opacity:1,offset:.5,easing:'ease-in'},{transform:'translate(0,0) rotate(720deg)',opacity:1,offset:.92},{transform:'translate(0,0) rotate(720deg)',opacity:0}],{duration:820,easing:'ease-out'});
+}
+function ndsConfetti(){ // 12 in a row: salt-crystal confetti
+  if(ndReduced())return;const r=ndsRel(nds.sw),x=r.cx,y=r.y+r.h*.3;
+  nds.cfs.forEach((e,i)=>{const a=-Math.PI*(.05+.9*i/(nds.cfs.length-1)),d=60+(i*37)%70,dx=Math.cos(a)*d*1.6,dy=Math.sin(a)*d;
+    e.animate([{transform:`translate(${x}px,${y}px) rotate(0)`,opacity:1},{transform:`translate(${x+dx}px,${y+dy}px) rotate(${200+i*40}deg)`,opacity:1,offset:.5,easing:'ease-in'},{transform:`translate(${x+dx*1.2}px,${y+dy+90}px) rotate(${420+i*40}deg)`,opacity:0}],{duration:1100,delay:i*12,easing:'ease-out'})});
+}
+// one light loop while Name drop is on screen: deferred toss + the beat dance (one class swap per beat, no layout)
+function ndsFrame(){
+  ndsRaf=0;
+  if(!ndC||!nds||!game||game.kind!=='drop'||!ndC.stage.isConnected){if(nds)nds.sw.classList.remove('nds-dA','nds-dB');return}
+  if(ndsPend&&!game.paused){const c=ndsPend;ndsPend=null;if(c.isConnected)ndsFling(c);else c.style.opacity=''}
+  const sw=nds.sw;let on=false;
+  if(SALTY_CFG.DANCE&&CB&&MUSIC_CFG.VOLUME>0&&!document.hidden&&!game.paused&&sw.dataset.s==='idle'&&CB.isEnabled()&&musicOn()&&!ndReduced()){
+    const p=CB.position();
+    if(p){
+      if(game.musicTrack!==ndsTrk){ndsTrk=game.musicTrack;const t=CB.tracks().find(x=>x.id===ndsTrk);ndsBeatMs=t?60000/t.bpm:500;sw.style.setProperty('--nds-beat',ndsBeatMs+'ms')}
+      if(p.level!==ndsLvl){ndsLvl=p.level;sw.style.setProperty('--nds-amp',(1.2+.8*p.level)+'deg');sw.style.setProperty('--nds-dip',(1.4+.6*p.level)+'px')}
+      const b=p.bar*4+(p.step>>2),now=performance.now();
+      if(b!==ndsBeat){ndsBeat=b;ndsBeatAt=now;ndsAB=!ndsAB;sw.classList.toggle('nds-dA',ndsAB);sw.classList.toggle('nds-dB',!ndsAB)}
+      on=now-ndsBeatAt<ndsBeatMs*2.5; // music stalled or paused: stop dancing
+    }
+  }
+  if(!on&&(sw.classList.contains('nds-dA')||sw.classList.contains('nds-dB'))){sw.classList.remove('nds-dA','nds-dB');ndsBeat=-1}
+  ndsRaf=requestAnimationFrame(ndsFrame);
+}
+// ===== end SALTY (nd-salty) =====
 
 // ================= MUSIC (Charge Command) =================
 // A light, tense loop made on the fly: minor bass pulse, soft arpeggio, ticking hats. Speeds up with the level.
