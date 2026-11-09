@@ -178,6 +178,15 @@ h3{font-family:"Baloo 2",sans-serif;font-size:21px;margin:26px 0 8px}
 .cap{font-size:14px;color:var(--soft)}
 svg .sym{font-family:"Baloo 2","Trebuchet MS",sans-serif;font-weight:800;font-size:19px;fill:#fff}
 svg .chg{font-size:13px}
+/* ===== SumZero: wrong-piece penalty + extra pieces (sz-) ===== */
+.sz-float{position:fixed;z-index:55;transform:translateX(-50%);pointer-events:none;display:flex;align-items:center;gap:8px;background:var(--surface);border:2px solid var(--bad);border-radius:999px;padding:1px 10px;font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap;animation:sz-up 1.4s ease-out forwards}
+.sz-float b{font-family:"Baloo 2",sans-serif;font-size:18px;line-height:1.1;color:var(--bad)}
+@keyframes sz-up{0%{opacity:0;transform:translate(-50%,6px)}10%{opacity:1;transform:translate(-50%,0)}75%{opacity:1;transform:translate(-50%,-4px)}100%{opacity:0;transform:translate(-50%,-14px)}}
+.timer.sz-hit{border-color:var(--bad)}
+.timer.sz-hit i{animation:sz-blink .45s}
+@keyframes sz-blink{50%{opacity:.35}}
+.piece.sz-out{opacity:0;transform:scale(.6);transition:opacity .4s,transform .4s;pointer-events:none}
+/* ===== end SumZero ===== */
 
 /* name */
 .well{position:relative;height:clamp(300px,46vh,440px);background:var(--surface);border:3px solid var(--line);border-radius:20px;overflow:hidden}
@@ -521,7 +530,7 @@ body.ia-open #muteBtn,body.ia-open #musicBtn{position:relative;z-index:71}
     <h3>Mastery</h3>
     <div class="panel">
       <div class="mastery" id="masteryGrid"></div>
-      <p class="note">5 correct in a box earns a star. M = positive ion, X = negative ion. In SumZero, the puzzle help fades as you level up: no notches at level 8, no colors at level 11, and same-size pieces at level 14.</p>
+      <p class="note">5 correct in a box earns a star. M = positive ion, X = negative ion. In SumZero, the puzzle help fades as you level up: no notches at level 8, no colors at level 11, and same-size pieces at level 14. In Timed, a wrong piece costs a few seconds.</p>
     </div>
 
     <section id="boards" hidden>
@@ -626,7 +635,22 @@ body.ia-open #muteBtn,body.ia-open #musicBtn{position:relative;z-index:71}
 <script src="https://gibsonm1.github.io/theme/chembeats-tracks2.js"></script>
 <script src="https://gibsonm1.github.io/theme/chembeats-tracks3.js"></script>
 <script src="shared/musicpick.js"></script>
+<script src="shared/sumzero.js"></script>
 <script>
+// ======================== SUMZERO CONFIG (safe to edit) ========================
+const SZ_CFG = {
+  WRONG_PIECE_PENALTY_S: 3,   // Build the name, Timed: seconds a wrong piece takes off the yellow bar. 0 = no penalty.
+  FREE_BUILD_PENALTY_S: 1.5,  // Free build, Timed: a wrong piece makes the next ion come this many seconds sooner. 0 = no penalty.
+                              // Extra time divides both penalties by 1.6 (the same factor that gives 60% more time). Practice never loses time.
+  DECOY_START_LEVEL: 3,       // first level where the tray can have extra pieces (an extra copy, or a look-alike set). Levels 1-2 have none.
+  DECOY_CHANCE: 0.25,         // chance of extra pieces at DECOY_START_LEVEL (0.25 = 1 tray in 4)...
+  DECOY_CHANCE_STEP: 0.04,    // ...plus this much for each level after that...
+  DECOY_CHANCE_MAX: 0.5,      // ...but never more than this (0.5 = half the trays)
+  DECOY_TIME_BONUS_S: 3,      // Build the name, Timed: extra seconds on the bar when the tray has extra pieces (about one wrong piece)
+  MAX_TRAY: 8                 // Build the name: most pieces in the tray, extras included. 8 = same as before, so the page layout does not change.
+};
+// Extra pieces fade out of the tray when a compound is finished, so they never count against the student.
+// =============================================================================
 // ======================== MUSIC CONFIG (safe to edit) ========================
 const MUSIC_CFG = {
   VOLUME: 0.1,          // beat music volume, 0–1. 0.1 sits about 8 dB under the sound effects.
@@ -1083,8 +1107,7 @@ function missingIon(){
     return null;
   }
   const {cats,ans}=pools(game.level);
-  if(game.cat.length&&!game.tray.some(t=>t.ion.c<0))return rnd(ans);
-  if(game.an.length&&!game.tray.some(t=>t.ion.c>0))return rnd(cats);
+  if(game.cat.length||game.an.length){const ok=szPartners(cats,ans);if(ok.length&&!game.tray.some(t=>ok.some(o=>o.k===t.ion.k)))return rnd(ok)}
   return null;
 }
 function newIon(){
@@ -1112,8 +1135,9 @@ function supplyNeed(){
     if(game.tray.length>=8){if(game.timed)break;game.tray.shift()}
     trayInsert(mk(ion));
     if(game.timed)bankTime(.25); // a handed-over piece buys back part of its own space
-    if(Math.random()<.6&&game.tray.length<(game.timed?6:8)){const d=decoyFor(ion);if(d&&trayCount(d.k)<2)trayInsert(mk(d))}
+    if(Math.random()<.6&&game.tray.length<(game.timed?6:8)){const d=decoyFor(ion);if(d&&trayCount(d.k)<2)trayInsert(szX(mk(d)))}
   }
+  szFreeExtra();
   // always leave a real choice: at least 4 pieces, at least 3 different kinds
   let guard=0;
   while(guard++<20&&game.tray.length<8&&(game.tray.length<4||kinds()<3)){
@@ -1130,12 +1154,14 @@ function newOrder(){
   // distractors: look-alike ions first, then random others
   const used=new Set([cat.k,an.k]),dis=[];
   const {cats,ans}=pools(game.level);
+  const ext=SumZero.orderExtras({target:game.target,cats,ans,level:game.level,cfg:SZ_CFG});ext.forEach(x=>used.add(x.k)); // sz: extra pieces
+  game.szPend=0;game.szBonus=ext.length?SZ_CFG.DECOY_TIME_BONUS_S*1000*XT():0;
   const sib=cat.tm&&cats.find(x=>x.tm===cat.tm&&x.k!==cat.k); // iron(II) is the decoy for iron(III)
-  if(sib){dis.push(sib);used.add(sib.k)}
+  if(sib&&!used.has(sib.k)){dis.push(sib);used.add(sib.k)}
   const traps=(NAME_TRAPS[an.s]||[]).filter(trapName).map(nm=>ANIONS.find(x=>x.ide===nm)).filter(Boolean);
   shuffle(traps).forEach(x=>{if(!used.has(x.k)&&dis.length<2){dis.push(x);used.add(x.k)}});
   let g=0;while(dis.length<3&&g++<50){const x=Math.random()<.5?rnd(cats):rnd(ans);if(!used.has(x.k)){dis.push(x);used.add(x.k)}}
-  game.tray=shuffle([...tray,...dis.slice(0,Math.max(1,8-tray.length))]).map(mk);
+  game.tray=shuffle([...tray.map(mk),...ext.map(x=>szX(mk(x))),...dis.slice(0,Math.max(1,8-tray.length-ext.length)).map(mk)]);
   $('bTarget').innerHTML=`<small>Build</small>${cat.n} ${an.ide}`;
   $('bFormula').innerHTML='';
 }
@@ -1149,9 +1175,9 @@ function bankTime(spawns){
 }
 function buildTick(dt){
   if(!game.timed||game.locked)return;
-  game.acc+=dt;
+  game.acc+=dt;szTake(dt);
   if(game.sub==='order'){
-    const lim=orderTime();
+    const lim=szLim();
     $('bTimer').style.width=Math.max(0,100-game.acc/lim*100)+'%';
     if(game.acc>=lim)orderMiss();
     return;
@@ -1162,7 +1188,7 @@ function buildTick(dt){
   else{bar.classList.remove('bank');bar.style.width=Math.min(100,game.acc/iv*100)+'%'}
   if(game.acc>=iv){
     game.acc=0;
-    if(game.tray.length>=8){endGame('The tray overflowed.');return}
+    if(game.tray.length>=8&&!szDropExtra()){endGame('The tray overflowed.');return}
     game.tray.push(newIon());sfx.pop();renderTray();
   }
 }
@@ -1205,26 +1231,23 @@ function addToZone(id){
   if(!game||game.kind!=='build'||game.locked||game.paused)return;
   const idx=game.tray.findIndex(t=>t.id===id);if(idx<0)return;
   const ion=game.tray[idx].ion,isCat=ion.c>0,col=isCat?game.cat:game.an;
-  if(game.sub==='order'){
-    const t=game.target,want=isCat?t.cat:t.an;
-    if(ion.k!==want.k){game.streak=0;reject(`That's ${ionName(ion)}. You need ${ionName(want)}.`);return}
-  }
-  if(col.length&&col[0].k!==ion.k){reject(`One kind of ion per side. This side has ${col[0].s}${chargeText(col[0].c)}.`);return}
+  const bad=szWrong(ion);
+  if(bad){if(game.sub==='order')game.streak=0;reject(bad.msg);szPenalty(bad.cue);return}
   const units=col.reduce((s,i)=>s+Math.abs(i.c),0)+Math.abs(ion.c);
   if(units>boxCap()){reject(isPlain(ion)?'Too much charge on that side. Try a different ion.':'Too tall. Try a different ion.');return}
-  col.push(ion);game.tray.splice(idx,1);sfx.snap();setMsg('');
+  szKeepLast(idx);col.push(ion);game.tray.splice(idx,1);sfx.snap();setMsg('');
   const [p,q]=sums();
   if(p&&q&&p===q)complete();else{supplyNeed();renderBuild();if(!game.timed&&game.sub==='free')topUp()}
 }
 function complete(){
-  game.locked=true;renderBuild();
+  game.locked=true;renderBuild();szFade();
   const cat=game.cat[0],an=game.an[0],a=game.cat.length,b=game.an.length,g=gcd(a,b);
   const z=$('zone');z.classList.add('win');
   const units=a*cat.c,poly=cat.poly||an.poly?2:1;
   if(g===1){
     game.streak++;
     let pts=10*units*game.level*poly+(game.streak>2?5*game.streak:0);
-    if(game.sub==='order'&&game.timed)pts+=Math.round(Math.max(0,1-game.acc/orderTime())*20);
+    if(game.sub==='order'&&game.timed)pts+=Math.round(Math.max(0,1-game.acc/szLim())*20);
     pts=pt(pts);
     game.score+=pts;addCoins(pts);record(cat.c,-an.c);game.made++;sfx.good();tally('build-'+game.sub,true);
     $('bFormula').innerHTML=fHTML(cat,an,a,b);
@@ -1264,6 +1287,83 @@ $('clearBtn').addEventListener('click',()=>{
   back.forEach(ion=>{if(game.tray.length<8||game.sub==='order')game.tray.push(mk(ion))});
   setMsg('');renderBuild();
 });
+
+// ===== SumZero: wrong-piece penalty + extra pieces (sz-) =====
+const szX=t=>(t.x=true,t); // mark a tray piece as extra: it fades out when the next compound is finished
+const szLim=()=>orderTime()+(game.szBonus||0); // Build the name time, plus the bonus for a tray with extra pieces
+const SZ_RM=(()=>{try{return matchMedia('(prefers-reduced-motion: reduce)')}catch(e){return {matches:false}}})();
+const SZ_SUP={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','−':'⁻'};
+const szIon=i=>symText(i.s)+chargeText(i.c).replace(/./g,c=>SZ_SUP[c]||c);
+// ions that could balance what is on one side of the box (Free build)
+function szPartners(cats,ans){
+  const side=game.cat.length?game.cat:game.an;if(!side.length)return [];
+  return (side[0].c>0?ans:cats).filter(p=>SumZero.countWith(side[0],p)>=side.length);
+}
+// is this piece wrong right now? -> null or {msg, cue}
+function szWrong(ion){
+  const {cats,ans}=pools(game.level),t=game.target,isCat=ion.c>0,col=isCat?game.cat:game.an,other=isCat?game.an:game.cat;
+  const w=SumZero.wrongPiece({mode:game.sub,cat:game.cat,an:game.an,ion,target:t,cats,ans});
+  if(!w)return null;
+  if(w.why==='not')return {msg:`That's ${ionName(ion)}. You need ${ionName(isCat?t.cat:t.an)}.`,cue:'Not in this compound'};
+  if(w.why==='extra')return {msg:`You already have all the ${ionName(ion)} you need.`,cue:'You have enough of that ion'};
+  if(w.why==='side')return {msg:`One kind of ion per side. This side has ${col[0].s}${chargeText(col[0].c)}.`,cue:'One kind per side'};
+  const o=other[0],msg=o&&other.length>SumZero.countWith(o,ion)?`${szIon(ion)} can't balance ${other.length} ${szIon(o)} in the smallest ratio.`:`Too many ${szIon(ion)}. Use the smallest ratio.`;
+  return {msg,cue:'Too many for the smallest ratio'};
+}
+// Timed: the bar jumps (Build the name: less time left; Free build: the next ion comes sooner). Practice: same words, no time lost.
+function szPenalty(cue){
+  let txt='';
+  if(game.timed){
+    const s=(game.sub==='order'?SZ_CFG.WRONG_PIECE_PENALTY_S:SZ_CFG.FREE_BUILD_PENALTY_S)/XT();
+    if(s>0){
+      game.szPend=(game.szPend||0)+s*1000;txt=MINUS+(Math.round(s*10)/10)+' s';
+      const w=$('bTimerWrap');w.classList.remove('sz-hit');void w.offsetWidth;w.classList.add('sz-hit');
+      clearTimeout(szPenalty.t);szPenalty.t=setTimeout(()=>w.classList.remove('sz-hit'),600);
+    }
+  }
+  document.querySelectorAll('.sz-float').forEach(f=>f.remove());
+  const r=(game.timed?$('bTimerWrap'):$('zone')).getBoundingClientRect(),f=document.createElement('div');
+  f.className='sz-float';f.setAttribute('aria-hidden','true'); // the reason is read out from the message line
+  f.innerHTML=(txt?`<b>${txt}</b>`:'')+`<span>✕ ${esc(cue)}</span>`;
+  document.body.appendChild(f);
+  const half=f.offsetWidth/2+8,vw=document.documentElement.clientWidth;
+  f.style.left=Math.max(half,Math.min(vw-half,r.left+r.width/2))+'px';
+  f.style.top=(game.timed?r.bottom+3:Math.max(4,r.top-f.offsetHeight-4))+'px';
+  setTimeout(()=>f.remove(),1500);
+}
+// move the penalty into the clock quickly (about a quarter second), or at once with reduced motion; never past the end
+function szTake(dt){
+  if(!game.szPend)return;
+  const lim=game.sub==='order'?szLim():spawnInterval(),d=SZ_RM.matches?game.szPend:Math.min(game.szPend,dt*10);
+  game.szPend-=d;game.acc+=d;
+  if(game.acc>=lim){game.acc=lim;game.szPend=0}
+}
+// the piece about to go in is an extra, but an identical regular piece is still in the tray: keep the extra as the leftover
+function szKeepLast(idx){
+  const t=game.tray[idx];if(!t.x)return;
+  const o=game.tray.find(u=>!u.x&&u.ion.k===t.ion.k);if(o){o.x=true;t.x=false}
+}
+// a compound is finished: extra pieces fade out (Build the name: the whole old tray fades, a new one comes next)
+function szFade(){
+  game.szRolled=false;
+  const all=game.sub==='order',gone=game.tray.filter(t=>all||t.x);if(!gone.length)return;
+  game.tray=game.tray.filter(t=>!gone.includes(t));
+  gone.forEach(t=>{const b=$('tray').querySelector(`[data-id="${t.id}"]`);if(b){b.classList.add('sz-out');b.disabled=true}});
+  const g=game;setTimeout(()=>{if(game===g&&!all)renderTray()},420);
+}
+// Free build, timed: a full tray drops an extra piece before it can overflow
+function szDropExtra(){
+  const i=game.tray.findIndex(t=>t.x);if(i<0)return false;
+  game.tray.splice(i,1);return true;
+}
+// Free build: once per compound, when the box needs 2+ more of one ion, sometimes hand over one extra copy
+function szFreeExtra(){
+  const need=boxNeed();if(!need||game.szRolled)return;
+  const ion=need.nc>=2?need.cat:need.na>=2?need.an:null;if(!ion)return;
+  game.szRolled=true;
+  if(trayCount(ion.k)===(ion===need.cat?need.nc:need.na)&&game.tray.length<(game.timed?6:8)&&Math.random()<SumZero.decoyChance(game.level,SZ_CFG))trayInsert(szX(mk(ion)));
+}
+// ===== end SumZero =====
 
 // drag + tap
 let drag=null;
