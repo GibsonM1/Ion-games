@@ -431,6 +431,10 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #drop.nd-on :is(.drop,.ans,.fb) .x{color:var(--an)}}
 :root[data-theme="dark"] #drop.nd-on :is(.drop,.ans,.fb) .x{color:var(--an)}
 /* ===== end NAME DROP SCENE ===== */
+/* ===== INTRO AUDIO (ia-) ===== */
+/* while a new-ion card is open, the top-bar sound and music buttons sit above the blurred backdrop so they still work */
+body.ia-open #muteBtn,body.ia-open #musicBtn{position:relative;z-index:71}
+/* ===== end INTRO AUDIO ===== */
 </style>
 </head>
 <body>
@@ -1019,14 +1023,14 @@ function nextIntro(){
     $('introCh').textContent=bits.join(' ');
   }else $('introCh').textContent=`Charge ${one.c>0?'+':MINUS}${Math.abs(one.c)}. It joins the mix from here on.`;
   $('intro').hidden=false;sfx.good();$('introGo').focus();
-  if(!save.muted)setTimeout(()=>{if(!$('intro').hidden)speakName(ions.map(ionName).join(', '))},450);
+  if(!save.muted){const g=iaGen;setTimeout(()=>{if(g===iaGen&&!$('intro').hidden&&!save.muted)speakName(ions.map(ionName).join(', '),()=>!$('intro').hidden)},450)}
 }
 function closeIntro(){
   $('intro').hidden=true;introQ=[];duck(false);
   if(game){game.paused=false;game.listenAt=performance.now()+500}
 }
-$('introGo').addEventListener('click',()=>{try{speechSynthesis.cancel()}catch(e){}introQ.length?nextIntro():closeIntro()});
-$('introSpk').addEventListener('click',()=>speakName($('introName').textContent));
+$('introGo').addEventListener('click',()=>{iaHush();introQ.length?nextIntro():closeIntro()});
+$('introSpk').addEventListener('click',()=>speakName($('introName').textContent,()=>!$('intro').hidden));
 $('intro').addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();$('introGo').click()}});
 
 // ================= BUILD =================
@@ -1446,7 +1450,7 @@ function miss(i,landed,typed){
     f.innerHTML=`${typed?'Not quite. ':'Time. '}It's ${esc(c.name)}.<button class="spk" data-say aria-label="Hear the name">🔊</button>`;
     if($('typeIn'))$('typeIn').disabled=true;
     const card=$('dropCard');if(card)card.classList.add('tap');
-    if(!save.muted)setTimeout(()=>{if(game&&game.cur===c)speakName(c.name)},350);
+    if(!save.muted){const g=iaGen;setTimeout(()=>{if(g===iaGen&&game&&game.cur===c&&!save.muted)speakName(c.name,()=>game&&game.cur===c)},350)}
   }else if(game.sub==='type'){
     const f=$('fb');f.className='fb bad';
     f.textContent=(typed?`Not quite. `:'Time. ')+`It's ${c.name}.`;
@@ -1471,7 +1475,7 @@ window.addEventListener('keydown',e=>{if(game&&game.kind==='drop'&&isChoice(game
 // tap the card (practice, or after a miss) or a speaker to hear the name
 $('drop').addEventListener('click',e=>{
   if(!game||game.kind!=='drop'||game.sub!=='say'||!game.cur)return;
-  if(e.target.closest('[data-say]')||(e.target.closest('#dropCard')&&(!game.timed||game.answered)))speakName(game.cur.name);
+  if(e.target.closest('[data-say]')||(e.target.closest('#dropCard')&&(!game.timed||game.answered))){const c=game.cur;speakName(c.name,()=>game&&game.cur===c)}
 });
 
 // ===== NAME DROP SCENE (nd-) : JS =====
@@ -1910,6 +1914,30 @@ window.addEventListener('keydown',e=>{
   if(e.key==='s'||e.key==='S'){skip()}
 });
 
+// ===== INTRO AUDIO (ia-) : JS =====
+// ======================== READ-ALOUD CONFIG (safe to edit) ========================
+const IA_CFG={
+  LOCAL_VOICE_FIRST:true // true = read names with a voice built into the device. Online voices can lag 10–30 s on a busy school network.
+};
+// =============================================================================
+// A name may only be heard while the card it belongs to is on screen. iaGen goes up whenever a new-ion card closes,
+// the game stops, sound is turned off, or the tab is hidden; speech from before that is cancelled, and cut off if it starts late.
+let iaGen=0;
+function iaHush(){iaGen++;try{speechSynthesis.cancel();if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){}speaking=false;micUI()}
+// every way the card closes (Got it, Escape, game over, Home, new game) hides #intro: stop speech and bring the music back up
+new MutationObserver(()=>{const open=!$('intro').hidden;document.body.classList.toggle('ia-open',open);if(!open){iaHush();duck(false)}}).observe($('intro'),{attributes:true,attributeFilter:['hidden']});
+$('muteBtn').addEventListener('click',()=>setTimeout(()=>{if(save.muted)iaHush()}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)iaHush()});
+// keyboard while a card is open: Tab moves between music, sound, the card speaker and Got it; Escape closes from any of them
+document.addEventListener('keydown',e=>{
+  if($('intro').hidden)return;
+  if(e.key==='Escape'&&!$('intro').contains(document.activeElement)){e.preventDefault();$('introGo').click();return}
+  if(e.key!=='Tab')return;
+  const L=['musicBtn','muteBtn','introSpk','introGo'].map($).filter(b=>b&&!b.hidden&&b.getClientRects().length),n=L.length,i=L.indexOf(document.activeElement);
+  if(!n)return;e.preventDefault();
+  L[i<0?(e.shiftKey?n-1:0):(i+(e.shiftKey?n-1:1))%n].focus();
+});
+// ===== end INTRO AUDIO : JS =====
 // ================= SPEECH =================
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec=null,recOn=false,recWant=false,speaking=false,recErrs=0;
@@ -2016,19 +2044,21 @@ function onSpeech(e){
 // read a name aloud
 let voice=null;
 function pickVoice(){
-  try{const vs=speechSynthesis.getVoices();
-    voice=vs.find(v=>/^en-US/i.test(v.lang)&&/Google|Samantha|Aria|Jenny|Natural/i.test(v.name))||vs.find(v=>/^en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;
+  try{const all=speechSynthesis.getVoices(),find=vs=>vs.find(v=>/^en-US/i.test(v.lang)&&/Google|Samantha|Aria|Jenny|Natural/i.test(v.name))||vs.find(v=>/^en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;
+    voice=(IA_CFG.LOCAL_VOICE_FIRST&&find(all.filter(v=>v.localService)))||find(all); // ia-: device voice first
   }catch(e){}
 }
 if('speechSynthesis' in window){pickVoice();try{speechSynthesis.addEventListener('voiceschanged',pickVoice)}catch(e){}}
-function speakName(text){
+function speakName(text,ok){ // ok(): optional "is this still on screen?" check (ia-)
   if(!('speechSynthesis' in window))return;
   try{
-    speechSynthesis.cancel();
+    const g=iaGen,live=()=>g===iaGen&&(!ok||ok());
+    speechSynthesis.cancel();if(speechSynthesis.paused)speechSynthesis.resume(); // a stuck, paused engine would hold the name and play it later
     const u=new SpeechSynthesisUtterance(String(text).replace(/\((I|II|III|IV)\)/g,(m,r)=>' '+{I:'one',II:'two',III:'three',IV:'four'}[r]));if(voice)u.voice=voice;u.lang='en-US';u.rate=.85;
     speaking=true;micUI();
     const done=()=>setTimeout(()=>{speaking=false;if(game){game.listenAt=performance.now()+400;if(game.sub==='say'&&!game.answered)micRestart()}micUI()},300);
     u.onend=done;u.onerror=done;
+    u.onstart=()=>{if(!live())try{speechSynthesis.cancel()}catch(e){}}; // started too late (card gone, sound off): cut it off
     speechSynthesis.speak(u);
   }catch(e){speaking=false}
 }
