@@ -494,15 +494,20 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 <script src="https://gibsonm1.github.io/theme/login-v1.js"></script>
 <script src="https://gibsonm1.github.io/theme/chembeats-v1.js"></script>
 <script src="https://gibsonm1.github.io/theme/chembeats-tracks2.js"></script>
+<script src="https://gibsonm1.github.io/theme/chembeats-tracks3.js"></script>
+<script src="shared/musicpick.js"></script>
 <script>
 // ======================== MUSIC CONFIG (safe to edit) ========================
 const MUSIC_CFG = {
   VOLUME: 0.1,          // beat music volume, 0–1. 0.1 sits about 8 dB under the sound effects.
   CMD_VOLUME: 0.083,    // Charge Command's own spooky loop (was 0.07 = +18%)
-  HOME: 'boombap',      // home screen (calm). Track ids: boombap, boombap-up, stutter, trap16, drill, bounce, rage, jersey
-  BUILD: 'stutter',     // Bond: free build + build the name
-  DROP: 'trap16',       // Name drop: pick the name + pick the formula
-  TYPE: 'boombap-up',   // Name drop: type the name
+  // Each scene has a short pool. Every game start picks one track from its pool at random, never the same one as last time.
+  // Track ids: boombap, boombap-up, stutter, trap16, drill, bounce, rage, jersey, bateria, enredo, quintal, partido, roda, crush
+  // A track that did not load is skipped. Full list and feel of each track: MUSIC.md
+  HOME: ['boombap','quintal','crush'],        // home screen: calm and relaxed
+  BUILD: ['stutter','boombap-up','roda'],     // Bond: steady and thoughtful, not rushed
+  DROP: ['trap16','jersey','rage'],           // Name drop (pick the name + pick the formula): driving, for time pressure
+  TYPE: ['boombap-up','bateria','quintal'],   // Name drop (type the name): calm focus, drums or soft groove (no busy melody)
   LEVELS_PER_STEP: 3,   // game levels per music step: levels 1–3 = music level 1, 4–6 = 2, 7–9 = 3, 10+ = 4
   PRACTICE_MAX: 2,      // highest music level in Practice
   TYPE_MAX: 2,          // highest music level in Type the name (reading + typing needs focus)
@@ -1382,22 +1387,38 @@ $('musicBtn').addEventListener('click',()=>{gestured=true;setMusicPref(!musicOn(
 
 // ================= BEAT MUSIC (ChemBeats, shared from the theme repo) =================
 // One music setting for all of iBond, kept on this device ('ibond-music'). Off on a first visit.
-const CB=window.ChemBeats&&window.ChemBeats.play?window.ChemBeats:null;
+const CB=window.ChemBeats&&window.ChemBeats.play&&window.MusicPick?window.ChemBeats:null;
 const MUSIC_KEY='ibond-music';
 if(CB){CB.init({game:'ibond'});CB.setVolume(MUSIC_CFG.VOLUME)}
+// track pools: only tracks that loaded count; the last pick per scene is kept on this device ('ibond-music-last-<scene>')
+const MUSIC_AVAIL=CB?MusicPick.available(CB):[];
+function pickTrack(scene,pool){
+  const key=MUSIC_KEY+'-last-'+scene;let last=null;
+  try{last=localStorage.getItem(key)}catch(e){}
+  const t=MusicPick.pick(pool,MUSIC_AVAIL,last);
+  if(t)try{localStorage.setItem(key,t)}catch(e){}
+  return t;
+}
+let homeTrack=null; // the home screen's pick, kept until a game starts or you leave home
 function musicOn(){try{return localStorage.getItem(MUSIC_KEY)==='on'}catch(e){return false}}
 function setMusicPref(on){if(CB)CB.setEnabled(on);else try{localStorage.setItem(MUSIC_KEY,on?'on':'off')}catch(e){}}
 let gestured=false; // browsers only allow sound after a tap or key press
 function duck(on){if(CB)CB.setVolume(MUSIC_CFG.VOLUME*(on?MUSIC_CFG.INTRO_DUCK:1))}
 // decides what should be playing right now
 function musicScene(){
+  if(game)homeTrack=null;
   if(!CB||!musicOn()||!gestured){if(CB)CB.stop();if(!musicOn())musicStop();return}
-  if(!game){if($('home').classList.contains('on'))CB.play(MUSIC_CFG.HOME,1);else CB.stop();return}
+  if(!game){
+    if($('home').classList.contains('on')){if(!homeTrack)homeTrack=pickTrack('home',MUSIC_CFG.HOME);if(homeTrack)CB.play(homeTrack,1);else CB.stop()}
+    else{homeTrack=null;CB.stop()}
+    return;
+  }
   if(game.kind==='cmd'){CB.stop();musicStart();return}
   const say=game.kind==='drop'&&game.sub==='say';
   if(say){CB.stop();return}
   const type=game.kind==='drop'&&game.sub==='type';
-  const track=game.kind==='build'?MUSIC_CFG.BUILD:type?MUSIC_CFG.TYPE:MUSIC_CFG.DROP;
+  if(!game.musicTrack)game.musicTrack=pickTrack(game.kind==='build'?'build':type?'type':'drop',game.kind==='build'?MUSIC_CFG.BUILD:type?MUSIC_CFG.TYPE:MUSIC_CFG.DROP);
+  const track=game.musicTrack;if(!track){CB.stop();return}
   let cap=4;if(!game.timed)cap=Math.min(cap,MUSIC_CFG.PRACTICE_MAX);if(type)cap=Math.min(cap,MUSIC_CFG.TYPE_MAX);
   const L=Math.max(1,Math.min(cap,1+Math.floor((game.level-1)/MUSIC_CFG.LEVELS_PER_STEP)));
   CB.play(track,L);CB.setLevel(L);
