@@ -6,15 +6,15 @@ To change a pool, edit the plain list in the file named in the last column. Use 
 
 | Game | Scene | Pool | Feel | Edit here |
 |---|---|---|---|---|
-| iBond | Home screen | `boombap`, `quintal`, `crush` | Calm and relaxed: slow boom-bap and backyard pagode | `HOME` in `MUSIC_CFG`, `index.html` |
-| iBond | Bond (Free build, Build the name) | `stutter`, `boombap-up`, `roda` | Steady and thoughtful, never frantic | `BUILD` in `MUSIC_CFG`, `index.html` |
+| iBond | Home screen | `boombap`, `quintal`, `roda` | Calm and relaxed: slow boom-bap and backyard pagode | `HOME` in `MUSIC_CFG`, `index.html` |
+| iBond | SumZero (Free build, Build the name) | `stutter`, `boombap-up`, `roda`, `crush` | Steady and thoughtful, never frantic | `BUILD` in `MUSIC_CFG`, `index.html` |
 | iBond | Name drop: Pick the name, Pick the formula | `trap16`, `jersey`, `rage` | Driving, for time pressure | `DROP` in `MUSIC_CFG`, `index.html` |
 | iBond | Name drop: Type the name | `boombap-up`, `bateria`, `quintal` | Calm focus for reading and typing; drums-only or soft groove; music level is capped (`TYPE_MAX`) | `TYPE` in `MUSIC_CFG`, `index.html` |
 | iBond | Say my name | none | No music, so it cannot confuse the microphone | |
 | iBond | Charge Command | its own spooky loop | Not part of the pools | |
 | Ionagrams | Lobby | `bounce`, `partido`, `enredo` | Upbeat and friendly, party feel | `BEATS.lobby` in `CONFIG`, `ionagrams/music.js` |
 | Ionagrams | Build | `drill`, `bateria`, `trap16`, `stutter` | Driving but steady; the drums-only and puzzle tracks help focus | `BEATS.build` in `CONFIG`, `ionagrams/music.js` |
-| Ionagrams | Review | `boombap`, `quintal`, `crush`, `roda` | Calm and relaxed | `BEATS.review` in `CONFIG`, `ionagrams/music.js` |
+| Ionagrams | Review | `boombap`, `quintal`, `roda` | Calm and relaxed | `BEATS.review` in `CONFIG`, `ionagrams/music.js` |
 
 Ka-BOHR! keeps its own music (it is tied to its game rules).
 
@@ -40,6 +40,8 @@ Ka-BOHR! keeps its own music (it is tied to its game rules).
 Tips:
 
 - Keep `rage` and `drill` out of scenes where students read or type a lot.
+- Keep `crush` out of home screens, lobbies and results screens. Its cuica (the squeaky friction drum) plays from the first bar, which sounds odd on a menu. It is only in SumZero now.
+- There are no cumbia tracks yet. The theme repo holds 14 tracks: the first 8 beats and the 6 samba/pagode tracks.
 - A pool of one track always plays that track. A pool of two or more never repeats the last pick.
 - The last pick for each scene is remembered on that device only (`ibond-music-last-<scene>` and `ionagrams-beat-last-<scene>` in the browser's storage).
 - The track tests (`node tests/musicpick.test.js`) fail if a pool has a typo, has fewer than 2 or more than 4 tracks, or leaves one of the 14 tracks out.

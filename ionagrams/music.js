@@ -24,7 +24,7 @@ const CONFIG={
   BEATS:{
     lobby:['bounce','partido','enredo'],            // waiting room: upbeat and friendly, party feel
     build:['drill','bateria','trap16','stutter'],   // building compounds: driving but steady; drums-only and puzzle tracks help focus
-    review:['boombap','quintal','crush','roda']     // results: calm and relaxed
+    review:['boombap','quintal','roda']             // results: calm and relaxed (no crush: its cuica starts right away, odd on a waiting screen)
   },
   BEATS_VOLUME:.1,         // ChemBeats volume, 0–1 (about 8 dB under the sound effects)
   BEATS_STEPS:[.25,.5,.75] // build progress (0–1) that moves the beat up to level 2, 3 and 4

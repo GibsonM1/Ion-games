@@ -197,6 +197,8 @@ svg .chg{font-size:13px}
 .stackrow{position:absolute;left:8px;right:8px;height:40px;border-radius:10px;background:color-mix(in srgb,var(--bad) 22%,var(--surface));border:2px solid var(--bad);display:flex;align-items:center;justify-content:center;gap:10px;font-weight:700;font-size:15px}
 .stackrow b{font-family:"Baloo 2",sans-serif;font-size:20px}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.answers.n3{grid-template-columns:1fr 1fr 1fr}
+@media (max-width:760px){.answers.n3{grid-template-columns:1fr}}
 @media (max-width:520px){.answers{grid-template-columns:1fr}}
 .ans{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px;font-weight:700;font-size:18px;text-align:left;display:flex;gap:10px;align-items:center}
 .ans kbd{font-family:inherit;font-size:13px;border:2px solid var(--line);border-radius:6px;padding:0 6px;color:var(--soft)}
@@ -546,6 +548,14 @@ textarea{width:100%;font:inherit;font-size:15px;border:2px solid var(--line);bor
 /* ===== INTRO AUDIO (ia-) ===== */
 /* while a new-ion card is open, the top-bar sound and music buttons sit above the blurred backdrop so they still work */
 body.ia-open #muteBtn,body.ia-open #musicBtn{position:relative;z-index:71}
+/* a speaker button shows it was tapped: filled while the name is being read */
+.spk.ia-busy{background:var(--ink);color:var(--paper);border-color:var(--ink);animation:iaPulse 1s ease-in-out infinite}
+@keyframes iaPulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--ink) 22%,transparent)}}
+/* phones: the top bar must fit on one line so the sound button is never pushed off the screen */
+header{min-width:0}
+.who{min-width:0;flex:0 1 auto;overflow:hidden}.who .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+header .iconbtn,header .coins{flex:none}
+@media (max-width:480px){header{gap:6px}header .logo{font-size:26px}.who svg{flex:none}}
 /* ===== end INTRO AUDIO ===== */
 </style>
 </head>
@@ -647,6 +657,7 @@ body.ia-open #muteBtn,body.ia-open #musicBtn{position:relative;z-index:71}
 
     <h3>Atom buddies</h3>
     <div class="panel"><div class="shelf" id="shelf"></div><p class="note" id="shelfNote">Tap a buddy to make it your sprite.</p></div>
+    <p class="note" style="text-align:center;font-size:13px;margin-top:20px">Version: Nov 9, 2026, update 1</p>
   </section>
 
   <!-- CHARGE COMMAND -->
@@ -761,8 +772,8 @@ const MUSIC_CFG = {
   // Each scene has a short pool. Every game start picks one track from its pool at random, never the same one as last time.
   // Track ids: boombap, boombap-up, stutter, trap16, drill, bounce, rage, jersey, bateria, enredo, quintal, partido, roda, crush
   // A track that did not load is skipped. Full list and feel of each track: MUSIC.md
-  HOME: ['boombap','quintal','crush'],        // home screen: calm and relaxed
-  BUILD: ['stutter','boombap-up','roda'],     // Bond: steady and thoughtful, not rushed
+  HOME: ['boombap','quintal','roda'],         // home screen: calm and relaxed. Keep crush out of here: its cuica (the squeaky drum) starts right away, which is odd on a menu.
+  BUILD: ['stutter','boombap-up','roda','crush'], // SumZero: steady and thoughtful, not rushed
   DROP: ['trap16','jersey','rage'],           // Name drop (pick the name + pick the formula): driving, for time pressure
   TYPE: ['boombap-up','bateria','quintal'],   // Name drop (type the name): calm focus, drums or soft groove (no busy melody)
   LEVELS_PER_STEP: 3,   // game levels per music step: levels 1–3 = music level 1, 4–6 = 2, 7–9 = 3, 10+ = 4
@@ -775,6 +786,14 @@ const MUSIC_CFG = {
 // ======================== NAME DROP TIMING (safe to edit) ========================
 const ND_FALL_TIME_SCALE = 1.0; // time for a card to fall in Name drop. 1.0 = same as before. 1.1 = 10% more time to answer. 0.9 = 10% less.
 // The fall speed comes from the field's real height, so making the field taller or shorter never changes the time.
+const ND_PACE = {
+  CHOICES_START: 3,       // answer choices at level 1 in Pick the name and Pick the formula (3 = one right answer + 2 wrong ones)
+  CHOICES_FULL_LEVEL: 7,  // first level with all 4 choices. Levels below it use CHOICES_START. 1 = always 4 (the old way).
+  LOOKALIKE_EXTRA: 0.25,  // Pick the name: extra fall time when two choices are only a letter or two apart
+                          // (sulfate / sulfite, iron(II) / iron(III)). 0.25 = 25% more time for that card. 0 = off.
+  LOOKALIKE_LETTERS: 2    // how close two names must be to count as look-alikes: this many letters different, or fewer
+};
+// With 3 choices, one wrong answer is a known look-alike mistake and the other is a plainer mistake.
 // =============================================================================
 // ======================== NAME DROP LOOK (safe to edit) ========================
 const ND_CFG = {
@@ -1102,6 +1121,7 @@ function start(mode){
   const [kind,sub,pace]=mode.split('-'),timed=pace==='timed';
   document.querySelectorAll('[data-xt]').forEach(x=>x.hidden=!save.el);
   const st=save.stats[kind+'-'+sub]||(save.stats[kind+'-'+sub]={p:0,r:0,w:0});st.p++;persist();
+  if(!save.muted)iaWarmUp();
   if(kind==='build')startBuild(sub,timed);else if(kind==='cmd')startCmd(sub,timed);else startDrop(sub,timed);
   raf=requestAnimationFrame(loop);musicScene();
 }
@@ -1180,7 +1200,7 @@ function closeIntro(){
   if(game){game.paused=false;game.listenAt=performance.now()+500}
 }
 $('introGo').addEventListener('click',()=>{iaHush();introQ.length?nextIntro():closeIntro()});
-$('introSpk').addEventListener('click',()=>speakName($('introName').textContent,()=>!$('intro').hidden));
+$('introSpk').addEventListener('click',()=>speakName($('introName').textContent.replace(/ or /g,', '),()=>!$('intro').hidden,$('introSpk')));
 $('intro').addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();$('introGo').click()}});
 
 // ================= BUILD =================
@@ -1552,8 +1572,16 @@ function nameOptions(cat,an,a,b){
   const same=pools(lvl()).ans.filter(x=>x.c===an.c&&x.s!==an.s&&x.poly===an.poly);
   if(same.length)others.push(`${cat.n} ${rnd(same).ide}`);
   const top=cat.tm||cat.s==='Zn'||cat.s==='Ag'?traps.slice(0,2):shuffle(traps).slice(0,2);
-  const pick=[...new Set([...top,...shuffle(others)])].filter(x=>x!==correct).slice(0,3);
-  return {opts:shuffle([correct,...pick]),correct};
+  const n=ndChoices(),so=shuffle(others);
+  const pick=[...new Set(n<4?[top[0],...so,...top.slice(1)]:[...top,...so])].filter(x=>x&&x!==correct).slice(0,n-1);
+  const opts=shuffle([correct,...pick]);
+  return {opts,correct,look:ndLook(opts)};
+}
+// how many answer choices this level gets, and whether two name choices are close enough to slow the card down
+function ndChoices(){return lvl()<ND_PACE.CHOICES_FULL_LEVEL?Math.max(2,Math.min(4,ND_PACE.CHOICES_START)):4}
+function ndLook(opts){
+  const k=ND_PACE.LOOKALIKE_LETTERS;
+  return opts.some((a,i)=>opts.some((b,j)=>j>i&&lev(a.toLowerCase(),b.toLowerCase())<=k));
 }
 function formulaOptions(cat,an,a,b){
   const right=fHTML(cat,an,a,b),traps=[],others=[];
@@ -1568,7 +1596,8 @@ function formulaOptions(cat,an,a,b){
   others.push(fHTML(cat,an,cat.c,-an.c));
   others.push(fHTML(cat,an,a*2,b*2));
   others.push(`<span class="x">${partHTML(an,b)}</span><span class="m">${partHTML(cat,a)}</span>`);
-  const pick=[...new Set([...shuffle(traps).slice(0,2),...shuffle(others)])].filter(x=>x!==right).slice(0,3);
+  const n=ndChoices(),st=shuffle(traps).slice(0,2),so=shuffle(others);
+  const pick=[...new Set(n<4?[st[0],...so,...st.slice(1)]:[...st,...so])].filter(x=>x&&x!==right).slice(0,n-1);
   return {opts:shuffle([right,...pick]),correct:right};
 }
 function wellFloor(){return $('well').clientHeight-game.stack.length*ROW-8}
@@ -1582,9 +1611,9 @@ function nextDrop(){
   if(game.sub==='pick')Object.assign(c,nameOptions(cat,an,a,b));
   if(game.sub==='formula')Object.assign(c,formulaOptions(cat,an,a,b));
   game.cur=c;game.y=8;game.answered=false;
-  if(game.sub==='say'&&!game.sayTyped&&rec){try{speechSynthesis.cancel()}catch(e){}speaking=false;micRestart()}
+  if(game.sub==='say'&&!game.sayTyped&&rec&&$('intro').hidden){iaHush();micRestart()} // not while a new-ion card is reading its name
   const [st,step,fl,pr]=DUR[game.sub];
-  const dur=(game.timed?Math.max(fl,st-(game.level-1)*step):pr)*XT();
+  const dur=(game.timed?Math.max(fl,st-(game.level-1)*step):pr)*XT()*(c.look&&ND_PACE.LOOKALIKE_EXTRA>0?1+ND_PACE.LOOKALIKE_EXTRA:1); // look-alike names get more reading time
   game.speed=Math.max(10,wellFloor()-8)/dur;
   renderDrop();
 }
@@ -1621,7 +1650,7 @@ function renderDrop(){
     $('typeGo').addEventListener('click',checkTyped);
   }else{
     const hintBtn=game.sub==='formula'&&!c.hint?`<button class="linkbtn" id="hintBtn">Show the charges (half points)</button>`:'';
-    A.innerHTML=`<div class="answers">${c.opts.map((o,i)=>`<button class="ans ${game.sub==='formula'?'f':''}" data-i="${i}"><kbd>${i+1}</kbd><span>${o}</span></button>`).join('')}</div><div class="fb" id="fb" aria-live="polite"></div>${hintBtn}`;
+    A.innerHTML=`<div class="answers${c.opts.length===3?' n3':''}">${c.opts.map((o,i)=>`<button class="ans ${game.sub==='formula'?'f':''}" data-i="${i}"><kbd>${i+1}</kbd><span>${o}</span></button>`).join('')}</div><div class="fb" id="fb" aria-live="polite"></div>${hintBtn}`;
     if(hintBtn)$('hintBtn').addEventListener('click',()=>{if(game.answered)return;c.hint=true;c.usedHint=true;renderDrop()});
   }
 }
@@ -1664,7 +1693,7 @@ function win(){
 }
 function answer(i){
   if(!game||game.kind!=='drop'||!game.cur||game.answered||game.paused||!isChoice(game.sub))return;
-  const c=game.cur;
+  const c=game.cur;if(!(i<c.opts.length))return; // key 4 does nothing when there are 3 choices
   if(c.opts[i]===c.correct){document.querySelector(`.ans[data-i="${i}"]`).classList.add('ok');win()}
   else miss(i);
 }
@@ -1701,7 +1730,7 @@ window.addEventListener('keydown',e=>{if(game&&game.kind==='drop'&&isChoice(game
 // tap the card (practice, or after a miss) or a speaker to hear the name
 $('drop').addEventListener('click',e=>{
   if(!game||game.kind!=='drop'||game.sub!=='say'||!game.cur)return;
-  if(e.target.closest('[data-say]')||(e.target.closest('#dropCard')&&(!game.timed||game.answered))){const c=game.cur;speakName(c.name,()=>game&&game.cur===c)}
+  const sb=e.target.closest('[data-say]');if(sb||(e.target.closest('#dropCard')&&(!game.timed||game.answered))){const c=game.cur;speakName(c.name,()=>game&&game.cur===c,sb||document.querySelector('#drop [data-say]'))}
 });
 
 // ===== SCENE (nd-scene) =====
@@ -2414,13 +2443,24 @@ window.addEventListener('keydown',e=>{
 // ===== INTRO AUDIO (ia-) : JS =====
 // ======================== READ-ALOUD CONFIG (safe to edit) ========================
 const IA_CFG={
-  LOCAL_VOICE_FIRST:true // true = read names with a voice built into the device. Online voices can lag 10–30 s on a busy school network.
+  LOCAL_VOICE_FIRST:true, // true = read names with a voice built into the device. Online voices can lag 10–30 s on a busy school network.
+  WARM_UP:true,           // true = wake the device's voice (silently) when a game starts, so the first name is not read late
+  RATE:0.85,              // reading speed. 1 = normal, 0.85 = a little slower
+  GAP_MS:120,             // pause after stopping one name before starting the next (Chrome can lose a name that starts in the same instant)
+  RETRY_MS:2500           // if the voice has not started after this long, try once more with the device's default voice
 };
 // =============================================================================
 // A name may only be heard while the card it belongs to is on screen. iaGen goes up whenever a new-ion card closes,
 // the game stops, sound is turned off, or the tab is hidden; speech from before that is cancelled, and cut off if it starts late.
 let iaGen=0;
-function iaHush(){iaGen++;try{speechSynthesis.cancel();if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){}speaking=false;micUI()}
+let iaU=null,iaT=0,iaWarm=false; // iaU keeps the name being read alive (Chrome can drop one that nothing points to); iaT = the "did it start?" timer
+function iaBusy(b){document.querySelectorAll('.spk.ia-busy').forEach(x=>x.classList.remove('ia-busy'));if(b)b.classList.add('ia-busy')}
+function iaHush(){iaGen++;clearTimeout(iaT);iaU=null;iaBusy();try{speechSynthesis.cancel();if(speechSynthesis.paused)speechSynthesis.resume()}catch(e){}speaking=false;micUI()}
+// The first name a device reads can start seconds late while its voice loads. A silent word at game start loads it early.
+function iaWarmUp(){
+  if(iaWarm||!IA_CFG.WARM_UP||!('speechSynthesis' in window))return;iaWarm=true;
+  setTimeout(()=>{try{if(speechSynthesis.speaking||speechSynthesis.pending)return;const u=new SpeechSynthesisUtterance('a');u.volume=0;u.lang='en-US';if(voice)u.voice=voice;speechSynthesis.speak(u)}catch(e){}},250); // a moment after the game's own start-up clears the engine
+}
 // every way the card closes (Got it, Escape, game over, Home, new game) hides #intro: stop speech and bring the music back up
 new MutationObserver(()=>{const open=!$('intro').hidden;document.body.classList.toggle('ia-open',open);if(!open){iaHush();duck(false)}}).observe($('intro'),{attributes:true,attributeFilter:['hidden']});
 $('muteBtn').addEventListener('click',()=>setTimeout(()=>{if(save.muted)iaHush()}));
@@ -2546,17 +2586,32 @@ function pickVoice(){
   }catch(e){}
 }
 if('speechSynthesis' in window){pickVoice();try{speechSynthesis.addEventListener('voiceschanged',pickVoice)}catch(e){}}
-function speakName(text,ok){ // ok(): optional "is this still on screen?" check (ia-)
-  if(!('speechSynthesis' in window))return;
+function speakName(text,ok,btn){ // ok(): optional "is this still on screen?" check. btn: the speaker button that was tapped (it pulses while reading)
+  if(!('speechSynthesis' in window)){if(btn)toast('This device cannot read names aloud.');return}
+  const ss=speechSynthesis,g=iaGen,live=()=>g===iaGen&&(!ok||ok());
+  const txt=String(text).replace(/\((I|II|III|IV)\)/g,(m,r)=>' '+{I:'one',II:'two',III:'three',IV:'four'}[r]);
+  const done=()=>setTimeout(()=>{speaking=false;if(game){game.listenAt=performance.now()+400;if(game.sub==='say'&&!game.answered)micRestart()}micUI()},300);
+  const say=n=>{
+    if(!live()){iaBusy();speaking=false;micUI();return}
+    try{
+      const u=new SpeechSynthesisUtterance(txt);iaU=u;let started=false;
+      if(voice&&!n)u.voice=voice;u.lang='en-US';u.rate=IA_CFG.RATE;
+      u.onstart=()=>{started=true;if(iaU===u)clearTimeout(iaT);if(!live())try{ss.cancel()}catch(e){}}; // started too late (card gone, sound off): cut it off
+      u.onend=u.onerror=()=>{if(iaU!==u)return;clearTimeout(iaT);iaU=null;iaBusy();done()}; // a name that was replaced does nothing here
+      if(ss.paused)ss.resume(); // a paused engine would hold the name and play it later
+      ss.speak(u);
+      iaT=setTimeout(()=>{ // nothing heard yet: the engine swallowed it or the chosen voice is not working
+        if(started||iaU!==u)return;
+        try{ss.cancel()}catch(e){}
+        if(!n&&live())iaT=setTimeout(()=>say(1),IA_CFG.GAP_MS);
+        else{iaU=null;iaBusy();speaking=false;micUI();if(btn&&live())toast('This device could not read the name aloud.')}
+      },IA_CFG.RETRY_MS);
+    }catch(e){iaBusy();speaking=false}
+  };
   try{
-    const g=iaGen,live=()=>g===iaGen&&(!ok||ok());
-    speechSynthesis.cancel();if(speechSynthesis.paused)speechSynthesis.resume(); // a stuck, paused engine would hold the name and play it later
-    const u=new SpeechSynthesisUtterance(String(text).replace(/\((I|II|III|IV)\)/g,(m,r)=>' '+{I:'one',II:'two',III:'three',IV:'four'}[r]));if(voice)u.voice=voice;u.lang='en-US';u.rate=.85;
-    speaking=true;micUI();
-    const done=()=>setTimeout(()=>{speaking=false;if(game){game.listenAt=performance.now()+400;if(game.sub==='say'&&!game.answered)micRestart()}micUI()},300);
-    u.onend=done;u.onerror=done;
-    u.onstart=()=>{if(!live())try{speechSynthesis.cancel()}catch(e){}}; // started too late (card gone, sound off): cut it off
-    speechSynthesis.speak(u);
+    clearTimeout(iaT);iaU=null;iaBusy(btn);speaking=true;micUI();
+    // only stop the engine if it is busy, and never start the next name in the same instant: Chrome can drop it or play it late
+    if(ss.speaking||ss.pending){ss.cancel();iaT=setTimeout(()=>say(0),IA_CFG.GAP_MS)}else say(0);
   }catch(e){speaking=false}
 }
 
@@ -2617,7 +2672,7 @@ function renderWho(){
   const b=$('whoBtn');
   if(!NET.on&&!who){b.hidden=true;return}
   b.hidden=false;b.classList.toggle('guest',!who);
-  b.innerHTML=sprite(save.buddy,save.hat,30)+`<span class="nm">${who?esc(nameOf(who)):'Guest: log in'}</span>`;
+  b.innerHTML=sprite(save.buddy,save.hat,30)+`<span class="nm">${who?esc(nameOf(who)):'Log in'}</span>`;
   b.setAttribute('aria-label',who?`Logged in as ${nameOf(who)}`:'Playing as guest. Log in');
 }
 

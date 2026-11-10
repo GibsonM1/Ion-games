@@ -5,7 +5,7 @@ const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const THEME = '/home/claude/theme', ROOT = path.join(__dirname, '..');
 const { start: startFake } = require(path.join(THEME, 'tests/fakebase/server.js'));
 const SHIM = fs.readFileSync(path.join(THEME, 'tests/fakebase/firebase-shim.js'), 'utf8');
-const SHOTS = '/tmp/claude-0/-home-claude/8c860c6d-32b4-55fb-9dec-17e57cd2c305/scratchpad/shots';
+const SHOTS = path.join(require('os').tmpdir(), 'ionagrams-shots');
 fs.mkdirSync(SHOTS, { recursive: true });
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -37,7 +37,7 @@ function api(body) {
 
 async function setup(opts = {}) {
   const fake = await startFake(0), web = await staticServer();
-  const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+  const browser = await chromium.launch();
   const base = 'http://localhost:' + web.address().port + '/ionagrams/index.html';
   const players = [];
   async function player(name, o = {}) {

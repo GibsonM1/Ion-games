@@ -43,7 +43,7 @@ function fakeTTS(opts) {
     (L.voiceschanged || []).forEach(f => f({ type: 'voiceschanged' })); if (ss.onvoiceschanged) ss.onvoiceschanged({ type: 'voiceschanged' });
   }, M.VOICES_MS));
   const fire = (u, type, extra) => { const f = u['on' + type]; if (f) try { f(Object.assign({ type, utterance: u }, extra || {})); } catch (e) { console.error(e); } };
-  function begin(j) { j.state = 'play'; playing.add(j); log.push({ ev: 'start', id: j.id, text: j.u.text, t: now() }); fire(j.u, 'start'); if (j.state === 'play') j.timer = setTimeout(() => finish(j, 'end'), M.DUR); }
+  function begin(j) { j.state = 'play'; playing.add(j); log.push({ ev: j.u.volume === 0 ? 'start-silent' : 'start', id: j.id, text: j.u.text, t: now() }); fire(j.u, 'start'); if (j.state === 'play') j.timer = setTimeout(() => finish(j, 'end'), M.DUR); }
   function finish(j, how) {
     clearTimeout(j.timer); if (j.state === 'play') log.push({ ev: 'stop', id: j.id, how, t: now() });
     j.state = 'done'; playing.delete(j); if (cur === j) cur = null;

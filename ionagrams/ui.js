@@ -17,7 +17,8 @@ const CONFIG = {
     shapes: false                // true = iBond puzzle-piece tiles (easier: the shapes show what fits)
   },
   MAX_PLAYERS: 5,                // most players in one room
-  PRACTICE_SCALE: 0.5            // Practice alone earns this share of the ⚛ (0.5 = half)
+  PRACTICE_SCALE: 0.5,           // Practice alone earns this share of the ⚛ (0.5 = half)
+  COLUMNS: true                  // true = each compound stacks its + ions in a left column and its − ions in a right column (like SumZero). false = one row, in the order the tiles were dropped
 };
 // ===============================================================================
 // Tests may override CONFIG values with window.IONAGRAMS_CONFIG (set before this file loads).
@@ -518,8 +519,10 @@ function unlockGroup(gid) {
 // ---- render ----
 function groupTilesHTML(g, dis) {
   const ts = g.tiles.map(id => B.tiles[id]);
-  if (!B.shapes) return ts.map(t => tileHTML(t, { dis, isNew: B.fresh[t.id] })).join('');
+  if (!B.shapes && !CONFIG.COLUMNS) return ts.map(t => tileHTML(t, { dis, isNew: B.fresh[t.id] })).join('');
   const cats = ts.filter(t => R.ion(t.k).c > 0), ans = ts.filter(t => R.ion(t.k).c < 0);
+  if (!B.shapes) return `<div class="tcols"><div class="tcol" data-ph="+">${cats.map(t => tileHTML(t, { dis, isNew: B.fresh[t.id] })).join('')}</div>` +
+    `<div class="tcol an" data-ph="${MINUS}">${ans.map(t => tileHTML(t, { dis, isNew: B.fresh[t.id] })).join('')}</div></div>`;
   return `<div class="pcols"><div class="pcol">${cats.map(t => tileHTML(t, { shapes: true, dis, scale: 1 })).join('')}</div>` +
     `<div class="pcol an">${ans.map(t => tileHTML(t, { shapes: true, dis, scale: 1 })).join('')}</div></div>`;
 }

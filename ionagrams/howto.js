@@ -240,6 +240,8 @@ const CSS = `
 .ht-groups{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
 .ht-groups .grp{min-height:104px}
 .ht-groups .newg{min-height:84px}
+.ht-groups .tcol{min-height:50px;padding:2px;gap:3px}
+.ht-groups .tcol .tile{min-height:48px}
 .ht-traybox{background:var(--surface);border:3px solid var(--line);border-radius:20px;padding:8px 10px 10px}
 .ht-traybox.hot{border-color:var(--gold);border-style:solid;background:color-mix(in srgb,var(--gold) 14%,var(--surface))}
 .ht-th{display:flex;align-items:center;gap:8px;margin-bottom:31px;min-height:26px;font-family:"Baloo 2",sans-serif;font-size:19px}
@@ -292,12 +294,14 @@ const CSS = `
   .ht-text p{font-size:16px;margin-bottom:2px;line-height:1.3}
   .ht-msg{min-height:0;padding:6px 10px;font-size:16px}
   .ht-stage{padding:28px 8px 6px;gap:6px}
-  .ht-th{margin-bottom:31px}
+  .ht-th{margin-bottom:6px;min-height:22px}
   .ht-groups{grid-template-columns:1fr;gap:8px}
   .ht-groups .grp{min-height:0;padding:6px 8px 8px;gap:4px}
   .ht-groups .grp .fm{font-size:24px}
-  .ht-groups .grp .gh{min-height:40px}
-  .ht-groups .newg{min-height:52px;flex-direction:row;gap:8px;font-size:16px}
+  .ht-groups .grp .gh{min-height:26px}
+  .ht-groups .grp{padding:4px 8px 6px}
+  .ht-groups .newg{min-height:48px;flex-direction:row;gap:8px;font-size:16px}
+  .ht-groups .tcol{border:0;padding:0;min-height:48px}
   .ht-groups .newg b{font-size:24px}
   .ht-cards{grid-template-columns:1fr;gap:8px}
   .ht-cards .cg{display:grid;grid-template-columns:auto 1fr;column-gap:10px;padding:6px 10px}
@@ -336,13 +340,18 @@ function tileBtn(id, dis) {
   return `<button type="button" class="tile ${cat ? 'c' : 'a'}${S.fresh[id] ? ' new' : ''}" data-ht-tile="${id}" data-k="t:${id}" aria-pressed="${S.sel === id}" aria-label="${esc(tileLabel(k))}"${dis ? ' disabled' : ''}>${tileInner(k)}</button>`;
 }
 const sumRow = (ions, mark) => `<div class="ht-sum" title="${esc(tx('ui.helperTip'))}"><span class="ht-tag">${esc(tx('ui.helper'))}</span><span>${esc(sumText(ions, mark))}</span></div>`;
+// same two columns as the real game: + ions stack on the left, − ions on the right
+function colsHTML(g, dis) {
+  const col = pos => g.tiles.filter(id => (R.ion(S.tiles[id].k).c > 0) === pos).map(id => tileBtn(id, dis)).join('');
+  return `<div class="tcols"><div class="tcol" data-ph="+">${col(true)}</div><div class="tcol an" data-ph="${MINUS}">${col(false)}</div></div>`;
+}
 function grpHTML(g, i, o) {
   const ions = ionsOf(S, g), drop = S.sel && !g.locked && groupOf(S, S.sel) !== g, dragging = !!(drag && drag.on);
   return `<div class="grp${g.locked ? ' locked' : ''}${drop ? ' drop' : ''}" data-ht-drop="g:${g.id}" role="group" aria-label="${esc(tx('ui.compoundN', { n: i + 1 }) + (g.locked ? tx('ui.lockedSuffix') : ''))}">` +
     `<div class="gh"><div class="fm">${R.formulaHTML(ions)}</div>` +
     (o.lock ? (g.locked ? `<button type="button" class="btn alt lockbtn" data-ht-act="unlock" data-k="act:unlock"><span aria-hidden="true">🔒</span> ${esc(tx('ui.unlock'))}</button>`
       : `<button type="button" class="btn lockbtn" data-ht-act="lock" data-k="act:lock">${esc(tx('ui.lock'))}</button>`) : '') + `</div>` +
-    `<div class="tiles">${g.tiles.map(id => tileBtn(id, o.dis || g.locked)).join('')}</div>` +
+    `<div class="tiles">${colsHTML(g, o.dis || g.locked)}</div>` +
     (g.locked ? `<div class="claims"><span>+${g.pos} / ${MINUS}${g.neg}</span></div>` : '') +
     (o.sum && !g.locked ? sumRow(ions, true) : '') +
     (drop && !dragging ? `<button type="button" class="addhere" data-ht-drop="g:${g.id}" data-k="drop:g:${g.id}">${esc(tx('ui.putHere'))}</button>` : '') + `</div>`;

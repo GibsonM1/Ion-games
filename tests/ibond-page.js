@@ -7,7 +7,7 @@ const { chromium } = require('/opt/npm-tools/node_modules/playwright');
 const ROOT = path.join(__dirname, '..');
 const THEME = ['/home/claude/work/theme', '/home/claude/theme'].find(p => fs.existsSync(path.join(p, 'chembeats-v1.js')));
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
-const HOOK = "window.__szT={get game(){return game},start,newOrder,addToZone,supplyNeed,buildTick,renderBuild,renderTray,pools,mk,szX,boxNeed,szLim,szWrong,get save(){return save},SZ_CFG};\n";
+const HOOK = "window.__szT={get game(){return game},levelUp,showIntro,nextDrop,answer,nameOptions,formulaOptions,pickPair,win,miss,get iaGen(){return iaGen},start,newOrder,addToZone,supplyNeed,buildTick,renderBuild,renderTray,pools,mk,szX,boxNeed,szLim,szWrong,get save(){return save},SZ_CFG};\n";
 
 function server(hook) {
   return new Promise(res => {

@@ -4,7 +4,7 @@
 'use strict';
 const fs = require('fs');
 const { open } = require('./ibond-page');
-const OUT = process.env.SZ_OUT || '/mnt/user-data/outputs/sumzero-r2';
+const OUT = process.env.SZ_OUT || '' + require('path').join(require('os').tmpdir(), 'sumzero-shots') + '';
 fs.mkdirSync(OUT, { recursive: true });
 let fails = 0;
 const ok = (c, n, info) => { console.log((c ? 'ok   ' : 'FAIL ') + n + (c || info === undefined ? '' : '  -> ' + JSON.stringify(info))); if (!c) fails++; };
