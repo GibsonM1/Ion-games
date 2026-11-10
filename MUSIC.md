@@ -6,19 +6,19 @@ To change a pool, edit the plain list in the file named in the last column. Use 
 
 | Game | Scene | Pool | Feel | Edit here |
 |---|---|---|---|---|
-| iBond | Home screen | `boombap`, `quintal`, `roda` | Calm and relaxed: slow boom-bap and backyard pagode | `HOME` in `MUSIC_CFG`, `index.html` |
-| iBond | SumZero (Free build, Build the name) | `stutter`, `boombap-up`, `roda`, `crush` | Steady and thoughtful, never frantic | `BUILD` in `MUSIC_CFG`, `index.html` |
-| iBond | Name drop: Pick the name, Pick the formula | `trap16`, `jersey`, `rage` | Driving, for time pressure | `DROP` in `MUSIC_CFG`, `index.html` |
-| iBond | Name drop: Type the name | `boombap-up`, `bateria`, `quintal` | Calm focus for reading and typing; drums-only or soft groove; music level is capped (`TYPE_MAX`) | `TYPE` in `MUSIC_CFG`, `index.html` |
+| iBond | Home screen | `boombap`, `quintal`, `gaita`, `orquesta` | Calm and relaxed: slow boom-bap, backyard pagode, flute cumbia, ballroom cumbia | `HOME` in `MUSIC_CFG`, `index.html` |
+| iBond | SumZero (Free build, Build the name) | `stutter`, `roda`, `crush`, `cumbia` | Steady and thoughtful, never frantic | `BUILD` in `MUSIC_CFG`, `index.html` |
+| iBond | Name drop: Pick the name, Pick the formula | `trap16`, `jersey`, `rage`, `chicha` | Driving, for time pressure | `DROP` in `MUSIC_CFG`, `index.html` |
+| iBond | Name drop: Type the name | `boombap-up`, `bateria`, `quintal`, `sabanera` | Calm focus for reading and typing; music level is capped (`TYPE_MAX`), so the accordion melody never comes in | `TYPE` in `MUSIC_CFG`, `index.html` |
 | iBond | Say my name | none | No music, so it cannot confuse the microphone | |
 | iBond | Charge Command | its own spooky loop | Not part of the pools | |
-| Ionagrams | Lobby | `bounce`, `partido`, `enredo` | Upbeat and friendly, party feel | `BEATS.lobby` in `CONFIG`, `ionagrams/music.js` |
-| Ionagrams | Build | `drill`, `bateria`, `trap16`, `stutter` | Driving but steady; the drums-only and puzzle tracks help focus | `BEATS.build` in `CONFIG`, `ionagrams/music.js` |
-| Ionagrams | Review | `boombap`, `quintal`, `roda` | Calm and relaxed | `BEATS.review` in `CONFIG`, `ionagrams/music.js` |
+| Ionagrams | Lobby | `bounce`, `partido`, `enredo`, `orquesta` | Upbeat and friendly, party feel | `BEATS.lobby` in `CONFIG`, `ionagrams/music.js` |
+| Ionagrams | Build | `drill`, `bateria`, `cumbia`, `chicha` | Driving but steady | `BEATS.build` in `CONFIG`, `ionagrams/music.js` |
+| Ionagrams | Review | `boombap`, `quintal`, `roda`, `gaita` | Calm and relaxed | `BEATS.review` in `CONFIG`, `ionagrams/music.js` |
 
 Ka-BOHR! keeps its own music (it is tied to its game rules).
 
-## The 14 tracks
+## The 19 tracks
 
 | Id | Name | Tempo | Feel |
 |---|---|---|---|
@@ -36,12 +36,17 @@ Ka-BOHR! keeps its own music (it is tied to its game rules).
 | `jersey` | Jersey Bounce | 140 | Driving club bounce |
 | `drill` | Glide Reaction | 142 | Tense and fast, with sliding bass |
 | `rage` | Rage Reactor | 150 | The most aggressive track |
+| `gaita` | Magdalena Molecules | 86 | Cumbia: two flutes and hand drums, no bass. Calm, for menus |
+| `orquesta` | Ballroom Bonds | 94 | Big-band cumbia: clarinet, saxes, trumpets, piano. For menus and lobbies |
+| `cumbia` | Rolling Reagents | 100 | Classic cumbia: cane flute, singer and chorus. General gameplay |
+| `sabanera` | Squeezebox Solutions | 104 | Accordion cumbia. Gameplay |
+| `chicha` | Wah-Wah Wavelengths | 108 | Peruvian psychedelic cumbia: wah guitar, organ. Fast rounds |
 
 Tips:
 
 - Keep `rage` and `drill` out of scenes where students read or type a lot.
 - Keep `crush` out of home screens, lobbies and results screens. Its cuica (the squeaky friction drum) plays from the first bar, which sounds odd on a menu. It is only in SumZero now.
-- There are no cumbia tracks yet. The theme repo holds 14 tracks: the first 8 beats and the 6 samba/pagode tracks.
+- The 5 cumbia tracks live in `chembeats-tracks4.js` in the theme repo. They build their sounds when a track starts, which can cause a short pause on a slow Chromebook.
 - A pool of one track always plays that track. A pool of two or more never repeats the last pick.
 - The last pick for each scene is remembered on that device only (`ibond-music-last-<scene>` and `ionagrams-beat-last-<scene>` in the browser's storage).
-- The track tests (`node tests/musicpick.test.js`) fail if a pool has a typo, has fewer than 2 or more than 4 tracks, or leaves one of the 14 tracks out.
+- The track tests (`node tests/musicpick.test.js`) fail if a pool has a typo, has fewer than 2 or more than 4 tracks, or leaves one of the 19 tracks out.

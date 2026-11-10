@@ -53,7 +53,7 @@ for (const n of [2, 3, 4]) {
 }
 
 // ---- the real pools (typos here mean silent music) ----
-const ALL14 = ['jersey', 'rage', 'drill', 'trap16', 'boombap', 'boombap-up', 'bounce', 'stutter', 'bateria', 'enredo', 'quintal', 'partido', 'roda', 'crush'];
+const ALL14 = ['jersey', 'rage', 'drill', 'trap16', 'boombap', 'boombap-up', 'bounce', 'stutter', 'bateria', 'enredo', 'quintal', 'partido', 'roda', 'crush', 'gaita', 'orquesta', 'cumbia', 'sabanera', 'chicha'];
 const root = path.join(__dirname, '..');
 const cfgText = /const MUSIC_CFG = (\{[\s\S]*?\n\});/.exec(fs.readFileSync(path.join(root, 'index.html'), 'utf8'));
 t('found MUSIC_CFG in index.html', !!cfgText);
@@ -64,7 +64,7 @@ for (const [name, p] of Object.entries(pools)) {
   t(name + ': 2-4 distinct tracks, all real ids (' + p.join(', ') + ')', Array.isArray(p) && p.length >= 2 && p.length <= 4 && new Set(p).size === p.length && p.every(id => ALL14.includes(id)), p);
 }
 const used = new Set(Object.values(pools).flat());
-t('every one of the 14 tracks is in at least one pool', ALL14.every(id => used.has(id)), ALL14.filter(id => !used.has(id)));
+t('every one of the 19 tracks is in at least one pool', ALL14.every(id => used.has(id)), ALL14.filter(id => !used.has(id)));
 const longText = [IB.TYPE, IB.BUILD];
 t('rage and drill are not in the type-the-name or Bond pools', longText.every(p => !p.includes('rage') && !p.includes('drill')));
 

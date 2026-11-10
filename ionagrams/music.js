@@ -20,11 +20,12 @@ const CONFIG={
   // Countdown, challenge heartbeat, reveal and win stings stay as they are. Set a phase to [] or null to use the old music.
   // Each phase has a short pool. Every new lobby / build / review picks one track at random, never the same one as last time.
   // Track ids: boombap, boombap-up, stutter, trap16, drill, bounce, rage, jersey, bateria, enredo, quintal, partido, roda, crush
+  // Cumbia ids: gaita, orquesta, cumbia, sabanera, chicha
   // A track that did not load is skipped (if none loads, the old music plays). Full list and feel of each track: MUSIC.md
   BEATS:{
-    lobby:['bounce','partido','enredo'],            // waiting room: upbeat and friendly, party feel
-    build:['drill','bateria','trap16','stutter'],   // building compounds: driving but steady; drums-only and puzzle tracks help focus
-    review:['boombap','quintal','roda']             // results: calm and relaxed (no crush: its cuica starts right away, odd on a waiting screen)
+    lobby:['bounce','partido','enredo','orquesta'],          // waiting room: upbeat and friendly, party feel
+    build:['drill','bateria','cumbia','chicha'],    // building compounds: driving but steady
+    review:['boombap','quintal','roda','gaita']           // results: calm and relaxed (no crush: its cuica starts right away, odd on a waiting screen)
   },
   BEATS_VOLUME:.1,         // ChemBeats volume, 0–1 (about 8 dB under the sound effects)
   BEATS_STEPS:[.25,.5,.75] // build progress (0–1) that moves the beat up to level 2, 3 and 4
